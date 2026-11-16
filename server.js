@@ -26,7 +26,6 @@ function saveDB() {
     fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
 }
 
-// Definição de múltiplos mapas (tamanhos e paredes diferentes)
 const MAPS = [
     {
         name: "Arena Clássica",
@@ -81,10 +80,10 @@ const SWORDS = {
 };
 
 let onlineSockets = {}; // socket.id -> email
+let userActiveSocket = {}; // email -> socket.id (Controle de sessão única)
 let matchQueue = { '1v1': [], '2v2': [] };
-let activeRooms = {}; // roomId -> { id, mode, map, players: {}, state: 'playing' }
+let activeRooms = {};
 
-// Verifica interseção de segmento de reta com retângulo (para bloquear espada na parede)
 function lineIntersectsRect(x1, y1, x2, y2, rx, ry, rw, rh) {
     function lineIntersectsLine(a1, b1, a2, b2, c1, d1, c2, d2) {
         let ccw = (p1x, p1y, p2x, p2y, p3x, p3y) => (p3y - p1y) * (p2x - p1x) > (p2y - p1y) * (p3x - p1x);
@@ -97,7 +96,6 @@ function lineIntersectsRect(x1, y1, x2, y2, rx, ry, rw, rh) {
            lineIntersectsLine(x1, y1, x2, y2, rx, ry + rh, rx, ry);
 }
 
-// Colisão suave círculo vs retângulo
 function resolveCircleRect(p, obs) {
     let closestX = Math.max(obs.x, Math.min(p.x, obs.x + obs.w));
     let closestY = Math.max(obs.y, Math.min(p.y, obs.y + obs.h));
@@ -117,42 +115,94 @@ function resolveCircleRect(p, obs) {
     }
 }
 
+function handleDisconnectionCleanup(sockId) {
+    matchQueue['1v1'] = matchQueue['1v1'].filter(id => id !== sockId);
+    matchQueue['2v2'] = matchQueue['2v2'].filter(id => id !== sockId);
+
+    for (let roomId in activeRooms) {
+        const room = activeRooms[roomId];
+        if (room.players[sockId] && room.state === 'playing') {
+            room.players[sockId].hp = 0;
+        }
+    }
+
+    const email = onlineSockets[sockId];
+    if (email && userActiveSocket[email] === sockId) {
+        delete userActiveSocket[email];
+    }
+    delete onlineSockets[sockId];
+}
+
 io.on('connection', (socket) => {
-    // Autenticação (E-mail + Senha ou Google)
+    // Autenticação Manual (Username + E-mail + Senha obrigatórios) ou Google OAuth verificado
     socket.on('auth', (data) => {
         const email = (data.email || '').trim().toLowerCase();
         const password = (data.password || '').trim();
         const username = (data.username || '').trim();
         const isGoogle = !!data.isGoogle;
 
-        if (!email || (!isGoogle && !password)) {
-            return socket.emit('authError', 'Preencha e-mail e senha corretamente.');
+        if (!email) {
+            return socket.emit('authError', 'Informe um e-mail válido.');
         }
 
-        // Conta já existe
+        // Se for login manual, exige username, e-mail e senha
+        if (!isGoogle) {
+            if (!username || !password) {
+                return socket.emit('authError', 'Preencha Username, E-mail e Senha para entrar.');
+            }
+        }
+
+        // Conta já existe no banco
         if (db.users[email]) {
             const user = db.users[email];
-            if (!isGoogle && user.password !== password) {
-                return socket.emit('authError', 'Senha incorreta para este e-mail.');
+
+            if (!isGoogle) {
+                if (user.password === 'GOOGLE_OAUTH') {
+                    return socket.emit('authError', 'Esta conta foi criada com o Google. Use o botão Entrar com o Google.');
+                }
+                if (user.password !== password) {
+                    return socket.emit('authError', 'Senha incorreta para esta conta.');
+                }
+                if (user.username.toLowerCase() !== username.toLowerCase()) {
+                    return socket.emit('authError', 'O Username não corresponde ao e-mail informado.');
+                }
             }
+
+            // Verifica se já está conectado em outro dispositivo e desconecta a sessão anterior
+            if (userActiveSocket[email] && userActiveSocket[email] !== socket.id) {
+                const oldSocketId = userActiveSocket[email];
+                io.to(oldSocketId).emit('forceLogout', 'Você se conectou em outro dispositivo.');
+                handleDisconnectionCleanup(oldSocketId);
+            }
+
+            userActiveSocket[email] = socket.id;
             onlineSockets[socket.id] = email;
             return socket.emit('authSuccess', user);
         }
 
-        // Nova conta: valida Username único
-        if (!username || username.length < 3) {
-            return socket.emit('authError', 'Escolha um username único com pelo menos 3 caracteres.');
+        // Registro de Nova Conta
+        let finalUsername = username || (data.googleName ? data.googleName.replace(/\s+/g, '') : email.split('@')[0]);
+        if (finalUsername.length < 3) {
+            return socket.emit('authError', 'O username precisa ter pelo menos 3 caracteres.');
         }
-        const lowerUser = username.toLowerCase();
+
+        // Garante unicidade do username
+        let lowerUser = finalUsername.toLowerCase();
         if (db.usernames[lowerUser]) {
-            return socket.emit('authError', `O username "${username}" já está em uso! Escolha outro.`);
+            if (isGoogle) {
+                finalUsername = finalUsername + Math.floor(100 + Math.random() * 900);
+                lowerUser = finalUsername.toLowerCase();
+            } else {
+                return socket.emit('authError', `O username "${finalUsername}" já está em uso!`);
+            }
         }
 
         const newUser = {
             email,
             password: isGoogle ? 'GOOGLE_OAUTH' : password,
-            username,
-            avatar: data.avatar || 'man.png',
+            username: finalUsername,
+            selectedClass: 'Verity', // 'Verity' (verity.png) ou 'Moggity' (man.png + fundo amarelo)
+            customAvatar: null,
             coins: 150,
             elo: 1000,
             wins: 0,
@@ -167,18 +217,51 @@ io.on('connection', (socket) => {
         db.usernames[lowerUser] = email;
         saveDB();
 
+        userActiveSocket[email] = socket.id;
         onlineSockets[socket.id] = email;
         socket.emit('authSuccess', newUser);
     });
 
-    // Atualizar Avatar
-    socket.on('updateAvatar', (avatarData) => {
+    // Trocar Classe (Verity vs Moggity)
+    socket.on('selectClass', (cls) => {
         const email = onlineSockets[socket.id];
-        if (email && db.users[email]) {
-            db.users[email].avatar = avatarData;
+        if (email && db.users[email] && (cls === 'Verity' || cls === 'Moggity')) {
+            db.users[email].selectedClass = cls;
+            db.users[email].customAvatar = null; // Volta para o visual oficial da classe
             saveDB();
             socket.emit('userUpdated', db.users[email]);
         }
+    });
+
+    // Upload de Avatar Customizado
+    socket.on('updateAvatar', (avatarData) => {
+        const email = onlineSockets[socket.id];
+        if (email && db.users[email]) {
+            db.users[email].customAvatar = avatarData;
+            saveDB();
+            socket.emit('userUpdated', db.users[email]);
+        }
+    });
+
+    // Alterar Senha na aba de Configurações
+    socket.on('changePassword', (data) => {
+        const email = onlineSockets[socket.id];
+        const user = db.users[email];
+        if (!user) return;
+
+        if (user.password === 'GOOGLE_OAUTH') {
+            return socket.emit('settingsFeedback', { ok: false, msg: 'Contas vinculadas ao Google não usam senha local.' });
+        }
+        if (user.password !== data.oldPass) {
+            return socket.emit('settingsFeedback', { ok: false, msg: 'A senha atual está incorreta.' });
+        }
+        if (!data.newPass || data.newPass.length < 4) {
+            return socket.emit('settingsFeedback', { ok: false, msg: 'A nova senha deve ter no mínimo 4 caracteres.' });
+        }
+
+        user.password = data.newPass;
+        saveDB();
+        socket.emit('settingsFeedback', { ok: true, msg: 'Senha alterada com sucesso!' });
     });
 
     // Loja: Comprar ou Equipar Espada
@@ -201,7 +284,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Loja: Comprar Upgrades Permanentes
+    // Loja: Upgrades
     socket.on('shopUpgrade', (type) => {
         const email = onlineSockets[socket.id];
         const user = db.users[email];
@@ -226,12 +309,11 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Fila de Matchmaking (Somente jogadores reais, sem bots)
+    // Matchmaking
     socket.on('joinQueue', (mode) => {
         const email = onlineSockets[socket.id];
         if (!email || !db.users[email]) return;
 
-        // Remove de qualquer fila anterior
         matchQueue['1v1'] = matchQueue['1v1'].filter(id => id !== socket.id);
         matchQueue['2v2'] = matchQueue['2v2'].filter(id => id !== socket.id);
 
@@ -245,7 +327,6 @@ io.on('connection', (socket) => {
         matchQueue['2v2'] = matchQueue['2v2'].filter(id => id !== socket.id);
     });
 
-    // Inputs de movimento do jogador na partida
     socket.on('playerInput', (data) => {
         const room = activeRooms[data.roomId];
         if (!room || !room.players[socket.id]) return;
@@ -253,17 +334,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        matchQueue['1v1'] = matchQueue['1v1'].filter(id => id !== socket.id);
-        matchQueue['2v2'] = matchQueue['2v2'].filter(id => id !== socket.id);
-
-        // Se estava em uma partida, declara derrota por W.O.
-        for (let roomId in activeRooms) {
-            const room = activeRooms[roomId];
-            if (room.players[socket.id] && room.state === 'playing') {
-                room.players[socket.id].hp = 0;
-            }
-        }
-        delete onlineSockets[socket.id];
+        handleDisconnectionCleanup(socket.id);
     });
 });
 
@@ -271,7 +342,6 @@ function tryCreateMatch(mode) {
     const needed = mode === '1v1' ? 2 : 4;
     if (matchQueue[mode].length < needed) return;
 
-    // Ordena fila por Elo para pareamento justo
     matchQueue[mode].sort((a, b) => {
         const eloA = db.users[onlineSockets[a]]?.elo || 1000;
         const eloB = db.users[onlineSockets[b]]?.elo || 1000;
@@ -306,7 +376,8 @@ function tryCreateMatch(mode) {
             socketId: sockId,
             email: u.email,
             username: u.username,
-            avatar: u.avatar,
+            selectedClass: u.selectedClass || 'Verity',
+            customAvatar: u.customAvatar || null,
             elo: u.elo,
             team,
             x: spawnX,
@@ -337,7 +408,6 @@ function tryCreateMatch(mode) {
     });
 }
 
-// Loop de Física e Combate das Salas Ativas (60 FPS)
 setInterval(() => {
     for (let roomId in activeRooms) {
         const room = activeRooms[roomId];
@@ -345,7 +415,6 @@ setInterval(() => {
 
         const pList = Object.values(room.players);
 
-        // 1. Movimento e Rotação Contínua da Espada (Independente de andar!)
         for (let p of pList) {
             if (p.hp <= 0) continue;
 
@@ -363,21 +432,17 @@ setInterval(() => {
             p.x += vx * p.speed;
             p.y += vy * p.speed;
 
-            // Limites do mapa
             p.x = Math.max(p.radius, Math.min(room.map.width - p.radius, p.x));
             p.y = Math.max(p.radius, Math.min(room.map.height - p.radius, p.y));
 
-            // Colisão suave com todas as paredes do mapa
             for (let obs of room.map.obstacles) {
                 resolveCircleRect(p, obs);
             }
 
-            // A espada gira SEMPRE, mesmo parado!
             p.swordAngle = (p.swordAngle + p.swordSpeed) % (Math.PI * 2);
             if (p.hitCooldown > 0) p.hitCooldown--;
         }
 
-        // 2. Combate com Espadas Orbitais e Bloqueio por Parede
         for (let i = 0; i < pList.length; i++) {
             for (let j = 0; j < pList.length; j++) {
                 if (i === j) continue;
@@ -385,9 +450,8 @@ setInterval(() => {
                 let target = pList[j];
 
                 if (attacker.hp <= 0 || target.hp <= 0) continue;
-                if (attacker.team === target.team) continue; // Sem fogo amigo no 2v2
+                if (attacker.team === target.team) continue;
 
-                // Base e ponta da espada do atacante
                 let baseDist = attacker.radius + 8;
                 let tipDist = attacker.radius + attacker.swordLength;
 
@@ -396,7 +460,6 @@ setInterval(() => {
                 let tipX = attacker.x + Math.cos(attacker.swordAngle) * tipDist;
                 let tipY = attacker.y + Math.sin(attacker.swordAngle) * tipDist;
 
-                // Checa se a linha da lâmina toca o corpo do alvo
                 let midX = (baseX + tipX) / 2;
                 let midY = (baseY + tipY) / 2;
 
@@ -404,7 +467,6 @@ setInterval(() => {
                 let hitMid = Math.hypot(midX - target.x, midY - target.y) < target.radius;
 
                 if ((hitTip || hitMid) && attacker.hitCooldown <= 0) {
-                    // Verifica se há parede bloqueando o golpe entre o atacante e o alvo
                     let blockedByWall = false;
                     for (let obs of room.map.obstacles) {
                         if (lineIntersectsRect(attacker.x, attacker.y, target.x, target.y, obs.x, obs.y, obs.w, obs.h)) {
@@ -415,9 +477,8 @@ setInterval(() => {
 
                     if (!blockedByWall) {
                         target.hp = Math.max(0, target.hp - attacker.swordDamage);
-                        attacker.hitCooldown = 18; // Cooldown de 0.3s entre hits
+                        attacker.hitCooldown = 18;
 
-                        // Empurrão (Knockback) ao acertar
                         let kbAngle = Math.atan2(target.y - attacker.y, target.x - attacker.x);
                         target.x += Math.cos(kbAngle) * 22;
                         target.y += Math.sin(kbAngle) * 22;
@@ -427,7 +488,6 @@ setInterval(() => {
             }
         }
 
-        // 3. Verifica Vitória / Derrota da Partida
         const team1Alive = pList.some(p => p.team === 1 && p.hp > 0);
         const team2Alive = pList.some(p => p.team === 2 && p.hp > 0);
 
@@ -460,7 +520,6 @@ setInterval(() => {
 
             saveDB();
 
-            // Envia resultado individualizado para cada jogador na sala
             pList.forEach(p => {
                 const won = p.team === winningTeam;
                 const opponentNames = (won ? losers : winners).map(o => o.username).join(', ');
