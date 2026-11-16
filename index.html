@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Verity Battles - Competitive Arena</title>
-    <!-- Biblioteca Oficial Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         :root {
-            --win-glass: rgba(28, 52, 84, 0.78);
-            --win-glass-inner: rgba(240, 246, 255, 0.94);
+            --win-glass: rgba(28, 52, 84, 0.82);
+            --win-glass-inner: rgba(240, 246, 255, 0.95);
             --win-text-main: #111;
             --win-border: rgba(255, 255, 255, 0.65);
             --win-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
@@ -17,270 +16,265 @@
             --card-border: #b8c9dc;
         }
 
-        body.dark-mode {
-            --win-glass: rgba(15, 20, 28, 0.88);
-            --win-glass-inner: rgba(26, 32, 42, 0.95);
-            --win-text-main: #f0f4f8;
-            --win-border: rgba(120, 170, 230, 0.45);
-            --bg-wallpaper: radial-gradient(circle at 30% 20%, #162436 0%, #0b111a 65%, #04070c 100%);
-            --card-bg: #222a36;
-            --card-border: #3c4b61;
+        /* TEMA WINDOWS XP (Fiéis ao original) */
+        body.theme-windows-xp {
+            --win-glass: #0055ea;
+            --win-glass-inner: #ece9d8;
+            --win-text-main: #000;
+            --win-border: #002366;
+            --bg-wallpaper: #3a6ea5;
+            --card-bg: #fff;
+            --card-border: #7f9db9;
+        }
+        body.theme-windows-xp .aero-window { border-radius: 8px 8px 0 0; border: 2px solid #0055ea; box-shadow: 3px 3px 10px rgba(0,0,0,0.5); }
+        body.theme-windows-xp .aero-titlebar { background: linear-gradient(to right, #0055ea, #2a88ff); border-radius: 6px 6px 0 0; }
+        body.theme-windows-xp .win7-btn { background: linear-gradient(to bottom, #fff, #ece9d8); border: 1px solid #7f9db9; border-radius: 3px; font-family: Tahoma, sans-serif; }
+
+        /* TEMA WINDOWS 10 */
+        body.theme-windows-10 {
+            --win-glass: #1f1f1f;
+            --win-glass-inner: #2b2b2b;
+            --win-text-main: #f0f0f0;
+            --win-border: #3f3f3f;
+            --bg-wallpaper: #121212;
+            --card-bg: #333333;
+            --card-border: #555555;
+        }
+
+        /* TEMA WINDOWS 11 */
+        body.theme-windows-11 {
+            --win-glass: rgba(32, 32, 32, 0.85);
+            --win-glass-inner: rgba(45, 45, 45, 0.9);
+            --win-text-main: #ffffff;
+            --win-border: rgba(255, 255, 255, 0.15);
+            --bg-wallpaper: radial-gradient(circle, #2b1055, #7597de);
+            --card-bg: rgba(60, 60, 60, 0.6);
+            --card-border: rgba(255, 255, 255, 0.2);
+        }
+
+        /* TEMA HACKER (Matrix com letras verdes descendo) */
+        body.theme-hacker {
+            --win-glass: rgba(0, 20, 0, 0.92);
+            --win-glass-inner: rgba(0, 10, 0, 0.96);
+            --win-text-main: #00ff66;
+            --win-border: #00ff66;
+            --bg-wallpaper: #000;
+            --card-bg: #031403;
+            --card-border: #00ff66;
+        }
+        #matrixCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; display: none; }
+        body.theme-hacker #matrixCanvas { display: block; }
+
+        /* TEMA NEO CYBER */
+        body.theme-neo-cyber {
+            --win-glass: rgba(0, 15, 35, 0.9);
+            --win-glass-inner: rgba(5, 25, 50, 0.95);
+            --win-text-main: #00d2ff;
+            --win-border: #00d2ff;
+            --bg-wallpaper: radial-gradient(circle, #001f3f, #000814);
+            --card-bg: #0a1f35;
+            --card-border: #00d2ff;
         }
 
         * { box-sizing: border-box; user-select: none; }
+        body { background: var(--bg-wallpaper); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; color: var(--win-text-main); }
 
-        body {
-            background: var(--bg-wallpaper);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; padding: 0; height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column; justify-content: space-between; color: var(--win-text-main);
-        }
-
-        .aero-window {
-            background: var(--win-glass); border: 1px solid var(--win-border); border-radius: 8px;
-            box-shadow: var(--win-shadow), inset 0 1px 0 rgba(255,255,255,0.6); backdrop-filter: blur(12px); padding: 6px; margin: auto;
-            transition: all 0.2s ease;
-        }
-
-        .aero-titlebar {
-            display: flex; justify-content: space-between; align-items: center; padding: 4px 8px 8px 8px;
-            color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); font-size: 13px; font-weight: 600;
-        }
-
+        .aero-window { background: var(--win-glass); border: 1px solid var(--win-border); border-radius: 8px; box-shadow: var(--win-shadow); backdrop-filter: blur(12px); padding: 6px; margin: auto; }
+        .aero-titlebar { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); font-size: 13px; font-weight: 600; }
         .aero-controls { display: flex; gap: 2px; }
+        .aero-ctrl-btn { width: 26px; height: 18px; border: 1px solid rgba(255,255,255,0.4); border-radius: 3px; background: rgba(255,255,255,0.2); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .aero-ctrl-btn.close { background: #c5221f; width: 36px; }
+        .aero-body { background: var(--win-glass-inner); border: 1px solid rgba(0,0,0,0.35); border-radius: 4px; padding: 14px; color: var(--win-text-main); }
 
-        .aero-ctrl-btn {
-            width: 26px; height: 18px; border: 1px solid rgba(255,255,255,0.4); border-radius: 3px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0.05)); color: #fff;
-            font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-        }
-        .aero-ctrl-btn.close { background: linear-gradient(to bottom, #f28b82, #c5221f); width: 36px; }
-        .aero-ctrl-btn:hover { filter: brightness(1.2); }
+        .win7-btn { background: linear-gradient(to bottom, #f2f2f2, #cfcfcf); border: 1px solid #707070; border-radius: 3px; padding: 6px 12px; font-size: 12px; color: var(--win-text-main); cursor: pointer; transition: 0.1s; }
+        .win7-btn:hover { filter: brightness(1.15); border-color: #3c7fb1; }
+        .win7-btn.primary { font-weight: 600; border-color: #3c7fb1; }
 
-        .aero-body {
-            background: var(--win-glass-inner); border: 1px solid rgba(0,0,0,0.35); border-radius: 4px; padding: 18px; color: var(--win-text-main);
-        }
+        .google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: #fff; border: 1px solid #888; border-radius: 4px; padding: 8px; font-weight: 600; color: #333; cursor: pointer; margin-top: 8px; }
+        .win7-input { width: 100%; padding: 7px 10px; border: 1px solid #abadb3; border-radius: 2px; font-size: 13px; margin-bottom: 10px; background: #fff; color: #111; }
 
-        .win7-btn {
-            background: linear-gradient(to bottom, #f2f2f2 0%, #ebebeb 50%, #dddddd 51%, #cfcfcf 100%);
-            border: 1px solid #707070; border-radius: 3px; padding: 7px 14px; font-family: 'Segoe UI', sans-serif;
-            font-size: 13px; color: #111; cursor: pointer; box-shadow: inset 0 1px 0 #fff; transition: 0.15s;
-        }
-        .win7-btn:hover {
-            background: linear-gradient(to bottom, #eaf6fd 0%, #d9f0fc 50%, #bee6fd 51%, #a7d9f5 100%); border-color: #3c7fb1;
-        }
-        .win7-btn.primary { border-color: #3c7fb1; box-shadow: inset 0 0 3px #48a7e8; font-weight: 600; }
-
-        .google-btn {
-            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
-            background: #fff; border: 1px solid #888; border-radius: 4px; padding: 8px; font-weight: 600; color: #333; cursor: pointer; margin-top: 8px;
-        }
-        .google-btn:hover { background: #f5f8ff; border-color: #4285f4; }
-
-        .win7-input {
-            width: 100%; padding: 7px 10px; border: 1px solid #abadb3; border-top-color: #8e8f8f;
-            border-radius: 2px; font-family: 'Segoe UI', sans-serif; font-size: 13px; margin-bottom: 10px; background: #fff; color: #111;
-        }
-
-        .lobby-grid { display: grid; grid-template-columns: 1.25fr 1.1fr; gap: 16px; width: 900px; max-width: 96vw; }
-
-        .center-avatar-box {
-            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 16px;
-            text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-
-        .avatar-circle-wrap {
-            width: 126px; height: 126px; border-radius: 50%; border: 4px solid #3c7fb1;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.35); margin: 10px 0; overflow: hidden;
-            display: flex; align-items: center; justify-content: center; background-color: transparent;
-        }
+        .lobby-grid-main { display: grid; grid-template-columns: 280px 340px 280px; gap: 12px; width: 940px; max-width: 98vw; margin: auto; }
+        .lobby-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px; max-height: 460px; overflow-y: auto; text-align: left; }
+        
+        .center-avatar-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; max-height: 460px; }
+        .avatar-circle-wrap { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #3c7fb1; box-shadow: 0 4px 15px rgba(0,0,0,0.35); margin: 6px 0; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        
+        /* Preenchimento de aro correto para Veritys */
         .avatar-circle-wrap.moggity-bg { background-color: #ffde00 !important; }
+        .avatar-circle-wrap.lovity-bg { background-color: #ff69b4 !important; }
+        .avatar-circle-wrap.falsity-bg { background-color: #1e90ff !important; }
+        .avatar-circle-wrap.verity-bg { background-color: #38bdf8 !important; }
         .avatar-circle-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
-        .shop-sidebar {
-            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 12px; max-height: 480px; overflow-y: auto; text-align: left;
-        }
-        .shop-tabs { display: flex; gap: 4px; margin-bottom: 10px; border-bottom: 1px solid var(--card-border); padding-bottom: 6px; }
-        .shop-tab-btn { flex: 1; padding: 5px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; background: #ddd; border: 1px solid #999; border-radius: 3px; }
-        .shop-tab-btn.active { background: #3c7fb1; color: #fff; border-color: #205080; }
+        .shop-tabs { display: flex; gap: 4px; margin-bottom: 8px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px; }
+        .shop-tab-btn { flex: 1; padding: 4px; font-size: 10px; font-weight: bold; cursor: pointer; text-align: center; background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.2); border-radius: 3px; color: var(--win-text-main); }
+        .shop-tab-btn.active { background: #3c7fb1; color: #fff; }
 
-        .shop-item {
-            display: flex; align-items: center; justify-content: space-between; padding: 8px;
-            border: 1px solid var(--card-border); border-radius: 4px; margin-bottom: 8px; background: rgba(120, 150, 190, 0.08);
-        }
-        .shop-item img { width: 36px; height: 36px; object-fit: contain; margin-right: 10px; border: 1px solid #ccc; border-radius: 3px; background: #fff; padding: 2px; }
+        .shop-item, .inv-item { display: flex; align-items: center; justify-content: space-between; padding: 6px; border: 1px solid var(--card-border); border-radius: 4px; margin-bottom: 6px; background: rgba(120, 150, 190, 0.08); font-size: 11px; }
+        .shop-item img, .inv-item img { width: 28px; height: 28px; object-fit: contain; margin-right: 8px; border: 1px solid #ccc; border-radius: 3px; background: #fff; padding: 2px; }
 
-        .win7-taskbar {
-            height: 38px; background: linear-gradient(to bottom, rgba(45, 85, 135, 0.85), rgba(15, 35, 65, 0.95));
-            border-top: 1px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; color: #fff; font-size: 12px;
-            backdrop-filter: blur(10px);
-        }
+        .missions-bar { width: 940px; max-width: 98vw; margin: 4px auto 0 auto; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
 
-        .start-orb {
-            width: 30px; height: 30px; border-radius: 50%;
-            background: radial-gradient(circle at 35% 30%, #7ce2ff, #1979ca 60%, #093463 100%);
-            border: 1px solid rgba(255,255,255,0.7); box-shadow: 0 0 8px rgba(100, 200, 255, 0.8);
-            display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;
-        }
-
+        .win7-taskbar { height: 38px; background: linear-gradient(to bottom, #2d5587, #0f2341); border-top: 1px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; color: #fff; font-size: 12px; }
+        .start-orb { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #7ce2ff, #1979ca); border: 1px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
         .hidden { display: none !important; }
         canvas { background: #14181f; border: 2px solid #5a7ca5; border-radius: 4px; display: block; margin: 0 auto; }
     </style>
 </head>
-<body>
+<body class="theme-windows-7">
+    <canvas id="matrixCanvas"></canvas>
 
-    <!-- JANELA 1: LOGIN COM CARROSSEL DE CLASSES -->
+    <!-- LOGIN -->
     <div id="loginWin" class="aero-window" style="width: 380px;">
-        <div class="aero-titlebar">
-            <span>🛡️ Verity Battles - Logon do Sistema</span>
-            <div class="aero-controls"><div class="aero-ctrl-btn close">✕</div></div>
-        </div>
+        <div class="aero-titlebar"><span>🛡️ Verity Battles - Logon</span><div class="aero-controls"><div class="aero-ctrl-btn close">✕</div></div></div>
         <div class="aero-body">
             <div style="text-align: center; margin-bottom: 12px;">
                 <img id="loginCarouselImg" src="verity.png" alt="Classes" style="width: 64px; height: 64px; border-radius: 50%; border: 2px solid #3c7fb1; object-fit: cover;">
-                <h3 style="margin: 6px 0 2px 0;" data-i18n="loginTitle">Acesso Competitivo</h3>
-                <small style="color: #666;" data-i18n="loginSub">Informe Username, E-mail e Senha ou autorize com Google</small>
+                <h3 style="margin: 6px 0 2px 0;">Acesso Competitivo</h3>
             </div>
-
             <div id="authErrorBox" style="color: #c5221f; font-size: 12px; margin-bottom: 8px; font-weight: 600;"></div>
-
-            <input type="text" id="regUsername" class="win7-input" placeholder="Username Único (Obrigatório)">
-            <input type="email" id="loginEmail" class="win7-input" placeholder="E-mail (ex: voce@gmail.com)">
+            <input type="text" id="regUsername" class="win7-input" placeholder="Username Único">
+            <input type="email" id="loginEmail" class="win7-input" placeholder="E-mail">
             <input type="password" id="loginPass" class="win7-input" placeholder="Senha">
-
-            <button class="win7-btn primary" style="width: 100%;" onclick="submitManualAuth()" data-i18n="btnEnter">Entrar / Criar Conta</button>
-
+            <button class="win7-btn primary" style="width: 100%;" onclick="submitManualAuth()">Entrar / Registrar</button>
             <button class="google-btn" onclick="triggerGoogleOAuth()">
                 <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                <span data-i18n="btnGoogle">Entrar com o Google</span>
+                Entrar com o Google
             </button>
         </div>
     </div>
 
-    <!-- JANELA 2: LOBBY CENTRAL + LOJA COM ABAS -->
-    <div id="lobbyWin" class="aero-window hidden">
+    <!-- LOBBY PRINCIPAL -->
+    <div id="lobbyWin" class="aero-window hidden" style="width: auto; padding: 6px;">
         <div class="aero-titlebar">
-            <span>⚔️ Verity Battles - Central Competitiva</span>
+            <span>⚔️ Verity Battles - Central Principal</span>
             <div class="aero-controls">
-                <button class="win7-btn" style="padding: 1px 8px; font-size: 11px; margin-right: 4px;" onclick="openSettings()">⚙️ Config</button>
-                <div class="aero-ctrl-btn close" onclick="location.reload()" title="Sair">✕</div>
+                <button class="win7-btn" style="padding: 1px 8px; font-size: 11px;" onclick="openSettings()">⚙️ Config</button>
+                <div class="aero-ctrl-btn close" onclick="location.reload()">✕</div>
             </div>
         </div>
-        <div class="aero-body lobby-grid">
+        <div class="aero-body" style="padding: 8px;">
             
-            <div class="center-avatar-box">
-                <div style="width: 100%; display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;">
-                    <span>👤 <span id="lblUser">Player</span></span>
-                    <span>🏆 Elo: <span id="lblElo">1000</span></span>
-                    <span>💰 <span id="lblCoins">200</span></span>
-                </div>
-
-                <div id="avatarCircleWrap" class="avatar-circle-wrap">
-                    <img id="lobbyAvatarImg" src="verity.png" alt="Seu Personagem">
-                </div>
-
-                <div style="font-size: 12px; margin-bottom: 8px;">
-                    Classe: <strong id="lblClass">Verity</strong> | Espada: <strong id="lblSword">Espada Básica</strong>
-                </div>
-
-                <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px;">
-                    <button class="win7-btn primary" onclick="joinQueue('1v1')">⚔️ Duelo 1v1</button>
-                    <button class="win7-btn primary" onclick="joinQueue('2v2')">🛡️ Equipe 2v2</button>
-                </div>
-                <button class="win7-btn" style="background: linear-gradient(to bottom, #ffeb3b, #fbc02d); font-weight: bold; width: 100%;" onclick="joinFreeRoam()">🌍 Mega Labirinto Livre (Até 25)</button>
+            <div class="lobby-grid-main">
                 
-                <div id="queueBox" class="hidden" style="margin-top: 10px; font-size: 12px; color: #1979ca; font-weight: bold;">
-                    ⏳ <span id="queueText">Procurando oponente real...</span>
-                    <button class="win7-btn" style="padding: 2px 8px; font-size: 11px; margin-left: 6px;" onclick="cancelQueue()">Cancelar</button>
+                <!-- INVENTÁRIO (ESQUERDA) -->
+                <div class="lobby-panel">
+                    <h4 style="margin: 0 0 8px 0; font-size: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px;">🎒 Seu Inventário</h4>
+                    <div class="shop-tabs">
+                        <div id="invTabSwords" class="shop-tab-btn active" onclick="switchInvTab('swords')">Espadas</div>
+                        <div id="invTabClasses" class="shop-tab-btn" onclick="switchInvTab('classes')">Classes</div>
+                        <div id="invTabMenus" class="shop-tab-btn" onclick="switchInvTab('menus')">Temas</div>
+                    </div>
+                    <div id="invContentSwords"></div>
+                    <div id="invContentClasses" class="hidden"></div>
+                    <div id="invContentMenus" class="hidden"></div>
                 </div>
+
+                <!-- CENTRO (AVATAR, NÍVEL E MATCHMAKING APRIMORADO) -->
+                <div class="center-avatar-box">
+                    <div style="width: 100%; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 4px;">
+                        <span>👤 <span id="lblUser">Player</span></span>
+                        <span>⭐ Nv. <span id="lblLevel">1</span></span>
+                    </div>
+                    <div style="width: 100%; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 6px;">
+                        <span title="Moedas Grátis">💰 <span id="lblCoins">400</span></span>
+                        <span title="Verity Coins (Paga)"><img src="verity.png" style="width:14px; height:14px; vertical-align:middle;"> <span id="lblVerityCoins" style="color:#e74c3c;">10</span></span>
+                    </div>
+                    
+                    <div style="width: 100%; background: rgba(0,0,0,0.1); border-radius: 3px; height: 6px; margin-bottom: 8px; overflow: hidden;">
+                        <div id="xpBarFill" style="background: #3c7fb1; width: 0%; height: 100%;"></div>
+                    </div>
+
+                    <div id="avatarCircleWrap" class="avatar-circle-wrap"><img id="lobbyAvatarImg" src="verity.png" alt="Personagem"></div>
+                    <div style="font-size: 11px; margin-bottom: 8px;">Classe: <strong id="lblClass">Verity</strong></div>
+                    
+                    <!-- Botões de Matchmaking Melhorados -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; margin-bottom: 6px;">
+                        <button class="win7-btn primary" style="font-size:11px; padding:6px; font-weight:bold;" onclick="joinQueue('1v1')">⚔️ Duelo 1v1</button>
+                        <button class="win7-btn primary" style="font-size:11px; padding:6px; font-weight:bold;" onclick="joinQueue('2v2')">🛡️ Equipe 2v2</button>
+                    </div>
+                    <button class="win7-btn" style="background: linear-gradient(to bottom, #ffeb3b, #fbc02d); color:#111; font-weight: bold; width: 100%; font-size: 11px; margin-bottom: 6px; padding:6px;" onclick="joinFreeRoam()">🌍 Labirinto Livre (25p)</button>
+                    <button class="win7-btn" style="background: linear-gradient(to bottom, #9b59b6, #8e44ad); color:#fff; font-weight: bold; width: 100%; font-size: 11px; padding:6px;" onclick="openThemeBoxModal()">🎁 Caixa de Temas (200 💰)</button>
+
+                    <div id="queueBox" class="hidden" style="margin-top: 6px; font-size: 11px; color: #1979ca; font-weight: bold;">⏳ Buscando partida... <button class="win7-btn" style="padding:1px 4px;" onclick="cancelQueue()">X</button></div>
+                </div>
+
+                <!-- LOJA (DIREITA) COM ABA DE VERITY COINS PAGA E TUDO MAIS -->
+                <div class="lobby-panel">
+                    <h4 style="margin: 0 0 8px 0; font-size: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px;">🛒 Loja & Pagamentos</h4>
+                    <div class="shop-tabs">
+                        <div id="shopTabBtnSwords" class="shop-tab-btn active" onclick="switchShopTab('swords')">Espadas</div>
+                        <div id="shopTabBtnClasses" class="shop-tab-btn" onclick="switchShopTab('classes')">Classes</div>
+                        <div id="shopTabBtnCoins" class="shop-tab-btn" onclick="switchShopTab('coins')" style="color: #e74c3c; font-weight:bold;">Verity Coins</div>
+                    </div>
+                    <div id="shopTabSwords"></div>
+                    <div id="shopTabClasses" class="hidden"></div>
+                    <div id="shopTabCoins" class="hidden" style="text-align: center; padding: 10px;">
+                        <img src="verity.png" style="width: 40px; height: 40px; border-radius:50%; border:2px solid #e74c3c;">
+                        <p style="font-size: 11px; margin: 6px 0;">Compre Falsity e itens exclusivos com Verity Coins!</p>
+                        <button class="win7-btn primary" style="background: #e74c3c; color: #fff; width: 100%; font-weight:bold;" onclick="alert('Integração com Stripe em breve! Fique ligado para o lançamento dos pagamentos oficiais.')">💳 Comprar via Stripe (Em breve)</button>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- LOJA LATERAL COM ABAS -->
-            <div class="shop-sidebar">
-                <div class="shop-tabs">
-                    <div id="tabBtnSwords" class="shop-tab-btn active" onclick="switchShopTab('swords')">🗡️ Espadas</div>
-                    <div id="tabBtnClasses" class="shop-tab-btn" onclick="switchShopTab('classes')">😎 Classes</div>
-                    <div id="tabBtnUpg" class="shop-tab-btn" onclick="switchShopTab('upgrades')">⚡ Upgrades</div>
-                </div>
-
-                <div id="shopTabSwords"></div>
-                <div id="shopTabClasses" class="hidden"></div>
-                <div id="shopTabUpg" class="hidden">
-                    <div class="shop-item">
-                        <div>
-                            <strong style="font-size: 13px;">Velocidade (Nv. <span id="lblSpdLvl">1</span>/10)</strong><br>
-                            <small>Move mais rápido na arena</small>
-                        </div>
-                        <button class="win7-btn" onclick="buyUpgrade('speed')">200 💰</button>
-                    </div>
-                    <div class="shop-item">
-                        <div>
-                            <strong style="font-size: 13px;">Vitalidade Max (Nv. <span id="lblHpLvl">1</span>/10)</strong><br>
-                            <small>+20 HP por nível</small>
-                        </div>
-                        <button class="win7-btn" onclick="buyUpgrade('hp')">200 💰</button>
-                    </div>
-                </div>
+            <!-- MISSÕES DIÁRIAS (EMBAIXO) -->
+            <div class="missions-bar">
+                <div>📋 <strong>Missões Diárias:</strong> Jogue no Labirinto (0/1) | Vença um duelo 1v1 (0/1)</div>
+                <div style="color: #27ae60; font-weight: bold;">Recompensa: +100 💰</div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- MODAL DA CAIXA DE TEMAS -->
+    <div id="themeBoxModal" class="aero-window hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 997; width: 380px;">
+        <div class="aero-titlebar"><span>🎁 Caixa de Temas de Menu</span><div class="aero-controls"><div class="aero-ctrl-btn close" onclick="closeThemeBoxModal()">✕</div></div></div>
+        <div class="aero-body" style="text-align: center;">
+            <p style="font-size: 12px; margin-top:0;">Abra para tentar conseguir temas raros de Windows (XP com 0.1%, Win 10, Win 11, Hacker e Neo Cyber)!</p>
+            <div id="themeBoxRes" style="font-size: 14px; font-weight: bold; margin: 15px 0; min-height: 25px; color: #f1c40f;"></div>
+            <button id="spinThemeBtn" class="win7-btn primary" style="width: 100%; font-weight: bold;" onclick="openThemeBox()">Abrir Caixa (200 💰)</button>
         </div>
     </div>
 
     <!-- MODAL DE CONFIGURAÇÕES -->
     <div id="settingsModal" class="aero-window hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 380px; z-index: 998;">
-        <div class="aero-titlebar">
-            <span>⚙️ Painel de Controle - Configurações</span>
-            <div class="aero-controls"><div class="aero-ctrl-btn close" onclick="closeSettings()">✕</div></div>
-        </div>
+        <div class="aero-titlebar"><span>⚙️ Configurações</span><div class="aero-controls"><div class="aero-ctrl-btn close" onclick="closeSettings()">✕</div></div></div>
         <div class="aero-body">
-            <h4 style="margin: 0 0 8px 0;">Segurança da Conta</h4>
             <input type="password" id="cfgOldPass" class="win7-input" placeholder="Senha Atual">
-            <input type="password" id="cfgNewPass" class="win7-input" placeholder="Nova Senha (mín. 4 dígitos)">
+            <input type="password" id="cfgNewPass" class="win7-input" placeholder="Nova Senha">
             <div id="cfgFeedback" style="font-size: 12px; margin-bottom: 8px; font-weight: bold;"></div>
-            <button class="win7-btn primary" style="width: 100%; margin-bottom: 12px;" onclick="submitChangePassword()">Salvar Nova Senha</button>
-            <button class="win7-btn" style="width: 100%;" onclick="toggleTheme()">🌓 Alternar Tema Claro/Escuro</button>
+            <button class="win7-btn primary" style="width: 100%; margin-bottom: 8px;" onclick="submitChangePassword()">Salvar Senha</button>
         </div>
     </div>
 
-    <!-- JANELA 3: ARENA DE BATALHA COM CÂMERA FLUIDA -->
+    <!-- ARENA -->
     <div id="arenaWin" class="aero-window hidden">
-        <div class="aero-titlebar">
-            <span id="arenaTitle">⚔️ Arena</span>
-            <div class="aero-controls"><div class="aero-ctrl-btn close" onclick="location.reload()" title="Sair">✕</div></div>
-        </div>
-        <div class="aero-body" style="padding: 8px;">
-            <canvas id="gameCanvas" width="950" height="680"></canvas>
-        </div>
+        <div class="aero-titlebar"><span id="arenaTitle">⚔️ Arena</span><div class="aero-controls"><div class="aero-ctrl-btn close" onclick="location.reload()">✕</div></div></div>
+        <div class="aero-body" style="padding: 8px;"><canvas id="gameCanvas" width="950" height="680"></canvas></div>
     </div>
 
-    <!-- MODAL DE VITÓRIA / DERROTA COM FOTO DE PERFIL DO E-MAIL -->
+    <!-- RESULTADO DA PARTIDA -->
     <div id="resultModal" class="aero-window hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 380px; z-index: 999;">
-        <div class="aero-titlebar"><span>🏆 Resultado da Partida</span></div>
+        <div class="aero-titlebar"><span>🏆 Fim de Partida</span></div>
         <div class="aero-body" style="text-align: center;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px;">
                 <img id="resProfilePic" src="" style="width: 42px; height: 42px; border-radius: 50%; border: 2px solid #3c7fb1; object-fit: cover;">
                 <span id="resUsername" style="font-weight: bold; font-size: 15px;">Nome</span>
             </div>
             <h2 id="resTitle" style="margin: 4px 0;">VITÓRIA!</h2>
-            <p id="resOpponent" style="font-size: 13px; margin: 6px 0;">Oponente: Player2</p>
-            <div style="background: rgba(0,0,0,0.06); padding: 10px; border-radius: 4px; margin: 12px 0; font-size: 14px;">
-                <div>Elo: <strong id="resElo">+25</strong></div>
-                <div>Moedas Ganhas: <strong id="resCoins">+120 💰</strong></div>
+            <p id="resOpponent" style="font-size: 13px; margin: 6px 0;"></p>
+            <div style="background: rgba(0,0,0,0.06); padding: 10px; border-radius: 4px; margin: 12px 0;">
+                <div>XP de Conta: <strong id="resXp" style="color: #27ae60;">+150 XP</strong></div>
+                <div>Moedas: <strong id="resCoins">+120 💰</strong></div>
             </div>
             <button class="win7-btn primary" onclick="returnToLobby()">Voltar ao Lobby</button>
         </div>
     </div>
 
     <div class="win7-taskbar">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div class="start-orb" title="Verity OS 7">❖</div>
-            <span>Verity Battles Competitive v2.10</span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="win7-btn" style="padding: 2px 8px; font-size: 11px;" onclick="toggleTheme()">🌓 Tema</button>
-            <button class="win7-btn" style="padding: 2px 8px; font-size: 11px;" onclick="toggleLang()">🌐 PT/EN</button>
-            <span id="winClock" style="margin-left: 8px; font-weight: 600;">16:30</span>
-        </div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div class="start-orb">❖</div><span>Verity Battles v3.1</span></div>
+        <span id="winClock">16:50</span>
     </div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -296,32 +290,14 @@
         ];
 
         const CLASS_CATALOG = [
-            { name: "Verity", desc: "Clássico padrão", cost: 0 },
-            { name: "Moggity", desc: "Man Face com Dash na [Espaço]", cost: 1000 },
-            { name: "CyberNinja", desc: "Guerreiro letal", cost: 2500 }
+            { name: "Verity", desc: "Clássico padrão", cost: 0, currency: 'coins' },
+            { name: "Moggity", desc: "Man Face com Fundo Amarelo & Dash", cost: 1000, currency: 'coins' },
+            { name: "Lovity", desc: "Fundo Rosa + Coração Orbitante (1.55x Velocidade)", cost: 1800, currency: 'coins' },
+            { name: "Falsity", desc: "Fundo Azul comprável com Verity Coins", cost: 150, currency: 'verityCoins' },
+            { name: "CyberNinja", desc: "Guerreiro letal", cost: 2500, currency: 'coins' }
         ];
 
-        const I18N = {
-            pt: {
-                loginTitle: "Acesso Competitivo",
-                loginSub: "Informe Username, E-mail e Senha ou autorize com Google",
-                btnEnter: "Entrar / Criar Conta",
-                btnGoogle: "Entrar com o Google"
-            },
-            en: {
-                loginTitle: "Competitive Login",
-                loginSub: "Enter Username, Email & Password or sign in with Google",
-                btnEnter: "Login / Register",
-                btnGoogle: "Sign in with Google"
-            }
-        };
-
-        let currentLang = 'pt';
-        let currentUser = null;
-        let currentRoomId = null;
-        let currentMap = null;
-        let roomPlayers = {};
-        let freeRoamActive = false;
+        let currentUser = null, currentRoomId = null, currentMap = null, roomPlayers = {}, freeRoamActive = false;
         const keys = { up: false, down: false, left: false, right: false };
 
         const verityImg = new Image(); verityImg.src = 'verity.png';
@@ -337,55 +313,75 @@
             if(el) el.src = loginImages[loginIdx];
         }, 2000);
 
+        setInterval(() => { document.getElementById('winClock').innerText = new Date().toTimeString().slice(0, 5); }, 1000);
+
+        // Animação de Letras Descendo (Matrix para o tema Hacker)
+        const mCanvas = document.getElementById('matrixCanvas');
+        const mCtx = mCanvas.getContext('2d');
+        function resizeMatrix() { mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeMatrix); resizeMatrix();
+        const matrixChars = "VERITYFALSITYLOVITYMOGGITY0123456789ABCDEF";
+        const fontSize = 14;
+        let drops = [];
+        function initMatrix() {
+            let cols = Math.floor(mCanvas.width / fontSize);
+            drops = [];
+            for(let i=0; i<cols; i++) drops[i] = 1;
+        }
+        initMatrix();
         setInterval(() => {
-            document.getElementById('winClock').innerText = new Date().toTimeString().slice(0, 5);
-        }, 1000);
+            if(!document.body.classList.contains('theme-hacker')) return;
+            mCtx.fillStyle = "rgba(0, 15, 0, 0.15)";
+            mCtx.fillRect(0, 0, mCanvas.width, mCanvas.height);
+            mCtx.fillStyle = "#00ff66";
+            mCtx.font = fontSize + "px monospace";
+            for(let i=0; i<drops.length; i++) {
+                let text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                mCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if(drops[i] * fontSize > mCanvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }, 33);
 
-        function toggleTheme() { document.body.classList.toggle('dark-mode'); }
-
-        function toggleLang() {
-            currentLang = currentLang === 'pt' ? 'en' : 'pt';
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (I18N[currentLang][key]) el.innerText = I18N[currentLang][key];
-            });
+        function applyMenuStyle(styleName) {
+            document.body.classList.remove('theme-windows-xp', 'theme-windows-7', 'theme-windows-10', 'theme-windows-11', 'theme-hacker', 'theme-neo-cyber');
+            if (styleName === 'Windows XP') document.body.classList.add('theme-windows-xp');
+            else if (styleName === 'Windows 10') document.body.classList.add('theme-windows-10');
+            else if (styleName === 'Windows 11') document.body.classList.add('theme-windows-11');
+            else if (styleName === 'Hacker') document.body.classList.add('theme-hacker');
+            else if (styleName === 'Neo Cyber') document.body.classList.add('theme-neo-cyber');
+            else document.body.classList.add('theme-windows-7');
         }
 
         function switchShopTab(tab) {
-            document.getElementById('tabBtnSwords').classList.toggle('active', tab === 'swords');
-            document.getElementById('tabBtnClasses').classList.toggle('active', tab === 'classes');
-            document.getElementById('tabBtnUpg').classList.toggle('active', tab === 'upgrades');
-
+            document.getElementById('shopTabBtnSwords').classList.toggle('active', tab === 'swords');
+            document.getElementById('shopTabBtnClasses').classList.toggle('active', tab === 'classes');
+            document.getElementById('shopTabBtnCoins').classList.toggle('active', tab === 'coins');
             document.getElementById('shopTabSwords').classList.toggle('hidden', tab !== 'swords');
             document.getElementById('shopTabClasses').classList.toggle('hidden', tab !== 'classes');
-            document.getElementById('shopTabUpg').classList.toggle('hidden', tab !== 'upgrades');
+            document.getElementById('shopTabCoins').classList.toggle('hidden', tab !== 'coins');
+        }
+
+        function switchInvTab(tab) {
+            document.getElementById('invTabSwords').classList.toggle('active', tab === 'swords');
+            document.getElementById('invTabClasses').classList.toggle('active', tab === 'classes');
+            document.getElementById('invTabMenus').classList.toggle('active', tab === 'menus');
+            document.getElementById('invContentSwords').classList.toggle('hidden', tab !== 'swords');
+            document.getElementById('invContentClasses').classList.toggle('hidden', tab !== 'classes');
+            document.getElementById('invContentMenus').classList.toggle('hidden', tab !== 'menus');
         }
 
         function submitManualAuth() {
-            socket.emit('auth', {
-                username: document.getElementById('regUsername').value,
-                email: document.getElementById('loginEmail').value,
-                password: document.getElementById('loginPass').value,
-                isGoogle: false
-            });
+            socket.emit('auth', { username: document.getElementById('regUsername').value, email: document.getElementById('loginEmail').value, password: document.getElementById('loginPass').value, isGoogle: false });
         }
 
         function triggerGoogleOAuth() {
             google.accounts.oauth2.initTokenClient({
-                client_id: GOOGLE_CLIENT_ID,
-                scope: 'email profile',
+                client_id: GOOGLE_CLIENT_ID, scope: 'email profile',
                 callback: async (tokenResponse) => {
-                    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                        headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                    });
+                    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } });
                     const profile = await res.json();
-                    socket.emit('auth', {
-                        email: profile.email,
-                        googleName: profile.name,
-                        googleAvatar: profile.picture,
-                        username: document.getElementById('regUsername').value,
-                        isGoogle: true
-                    });
+                    socket.emit('auth', { email: profile.email, googleName: profile.name, googleAvatar: profile.picture, username: document.getElementById('regUsername').value, isGoogle: true });
                 }
             }).requestAccessToken();
         }
@@ -393,93 +389,125 @@
         socket.on('authError', (msg) => { document.getElementById('authErrorBox').innerText = msg; });
         socket.on('authSuccess', (user) => {
             currentUser = user;
+            applyMenuStyle(user.equippedMenuStyle);
             document.getElementById('loginWin').classList.add('hidden');
             document.getElementById('lobbyWin').classList.remove('hidden');
             renderLobby();
         });
         socket.on('forceLogout', (msg) => { alert(msg); location.reload(); });
-        socket.on('userUpdated', (user) => { currentUser = user; renderLobby(); });
+        socket.on('userUpdated', (user) => { currentUser = user; applyMenuStyle(user.equippedMenuStyle); renderLobby(); });
+        socket.on('shopError', (msg) => { alert(msg); });
 
         function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
         function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
         function submitChangePassword() {
-            socket.emit('changePassword', {
-                oldPass: document.getElementById('cfgOldPass').value,
-                newPass: document.getElementById('cfgNewPass').value
-            });
+            socket.emit('changePassword', { oldPass: document.getElementById('cfgOldPass').value, newPass: document.getElementById('cfgNewPass').value });
         }
-        socket.on('settingsFeedback', (res) => {
-            const fb = document.getElementById('cfgFeedback');
-            fb.style.color = res.ok ? '#1e8e3e' : '#d93025';
-            fb.innerText = res.msg;
-        });
+        socket.on('settingsFeedback', (res) => { document.getElementById('cfgFeedback').style.color = res.ok ? '#1e8e3e' : '#d93025'; document.getElementById('cfgFeedback').innerText = res.msg; });
 
         function renderLobby() {
             if (!currentUser) return;
             document.getElementById('lblUser').innerText = currentUser.username;
-            document.getElementById('lblElo').innerText = currentUser.elo;
+            document.getElementById('lblLevel').innerText = currentUser.level || 1;
             document.getElementById('lblCoins').innerText = currentUser.coins;
-            document.getElementById('lblSword').innerText = currentUser.equippedSword;
+            document.getElementById('lblVerityCoins').innerText = currentUser.verityCoins || 0;
             document.getElementById('lblClass').innerText = currentUser.selectedClass;
+
+            let xpNeeded = (currentUser.level || 1) * 300;
+            let xpPct = Math.min(100, ((currentUser.xp || 0) / xpNeeded) * 100);
+            document.getElementById('xpBarFill').style.width = xpPct + '%';
 
             const wrap = document.getElementById('avatarCircleWrap');
             const imgEl = document.getElementById('lobbyAvatarImg');
             
-            if (currentUser.selectedClass === 'Moggity') {
-                wrap.classList.add('moggity-bg');
-                imgEl.src = 'man.png';
-            } else {
-                wrap.classList.remove('moggity-bg');
-                imgEl.src = 'verity.png';
-            }
+            // Tratamento exato para cada Verity cobrir o aro inteiro
+            wrap.className = 'avatar-circle-wrap';
+            if (currentUser.selectedClass === 'Moggity') { wrap.classList.add('moggity-bg'); imgEl.src = 'man.png'; }
+            else if (currentUser.selectedClass === 'Lovity') { wrap.classList.add('lovity-bg'); imgEl.src = 'verity.png'; }
+            else if (currentUser.selectedClass === 'Falsity') { wrap.classList.add('falsity-bg'); imgEl.src = 'verity.png'; }
+            else { wrap.classList.add('verity-bg'); imgEl.src = 'verity.png'; }
 
-            document.getElementById('lblSpdLvl').innerText = currentUser.speedLvl;
-            document.getElementById('lblHpLvl').innerText = currentUser.hpLvl;
-
-            // Aba de Espadas com os PNGs dos ícones renderizados
+            // LOJA DE ESPADAS
             const swordList = document.getElementById('shopTabSwords');
             swordList.innerHTML = '';
             SWORD_CATALOG.forEach(sw => {
                 const owned = currentUser.unlockedSwords.includes(sw.name);
-                const equipped = currentUser.equippedSword === sw.name;
                 swordList.innerHTML += `
                     <div class="shop-item">
                         <div style="display:flex; align-items:center;">
                             <img src="${sw.png}" alt="${sw.name}">
-                            <div>
-                                <strong style="font-size:13px;">${sw.name}</strong><br>
-                                <small>Dano: ${sw.dmg}</small>
-                            </div>
+                            <div><strong>${sw.name}</strong><br><small>Dano: ${sw.dmg}</small></div>
                         </div>
-                        <button class="win7-btn ${equipped ? 'primary' : ''}" ${equipped ? 'disabled' : ''} onclick="socket.emit('shopSword', '${sw.name}')">${equipped ? 'Equipada' : (owned ? 'Equipar' : sw.cost + ' 💰')}</button>
-                    </div>
-                `;
+                        <button class="win7-btn ${owned ? 'primary' : ''}" onclick="socket.emit('shopSword', '${sw.name}')">${owned ? 'Comprado' : sw.cost + ' 💰'}</button>
+                    </div>`;
             });
 
-            // Aba de Classes
+            // LOJA DE CLASSES (Suportando Verity Coins e Moedas Normais)
             const classList = document.getElementById('shopTabClasses');
             classList.innerHTML = '';
             if(!currentUser.unlockedClasses) currentUser.unlockedClasses = ['Verity'];
             CLASS_CATALOG.forEach(cls => {
                 const owned = currentUser.unlockedClasses.includes(cls.name);
-                const selected = currentUser.selectedClass === cls.name;
+                let priceTag = cls.currency === 'verityCoins' ? `<img src="verity.png" style="width:12px; height:12px;"> ${cls.cost} V-Coins` : `${cls.cost} 💰`;
                 classList.innerHTML += `
                     <div class="shop-item">
-                        <div>
-                            <strong style="font-size:13px;">${cls.name}</strong><br>
-                            <small>${cls.desc}</small>
-                        </div>
-                        <button class="win7-btn ${selected ? 'primary' : ''}" ${selected ? 'disabled' : ''} onclick="${owned ? `socket.emit('selectClass', '${cls.name}')` : `socket.emit('buyClass', '${cls.name}')`}">${selected ? 'Selecionada' : (owned ? 'Selecionar' : cls.cost + ' 💰')}</button>
-                    </div>
-                `;
+                        <div><strong>${cls.name}</strong><br><small>${cls.desc}</small></div>
+                        <button class="win7-btn ${owned ? 'primary' : ''}" onclick="socket.emit('buyClass', '${cls.name}')">${owned ? 'Comprado' : priceTag}</button>
+                    </div>`;
+            });
+
+            // INVENTÁRIO
+            const invSwords = document.getElementById('invContentSwords');
+            invSwords.innerHTML = '';
+            currentUser.unlockedSwords.forEach(sName => {
+                const isEq = currentUser.equippedSword === sName;
+                invSwords.innerHTML += `
+                    <div class="inv-item">
+                        <span>🗡️ ${sName}</span>
+                        <button class="win7-btn ${isEq ? 'primary' : ''}" ${isEq ? 'disabled' : ''} onclick="socket.emit('selectSword', '${sName}')">${isEq ? 'Equipado' : 'Equipar'}</button>
+                    </div>`;
+            });
+
+            const invClasses = document.getElementById('invContentClasses');
+            invClasses.innerHTML = '';
+            currentUser.unlockedClasses.forEach(cName => {
+                const isEq = currentUser.selectedClass === cName;
+                invClasses.innerHTML += `
+                    <div class="inv-item">
+                        <span>😎 ${cName}</span>
+                        <button class="win7-btn ${isEq ? 'primary' : ''}" ${isEq ? 'disabled' : ''} onclick="socket.emit('selectClass', '${cName}')">${isEq ? 'Equipado' : 'Equipar'}</button>
+                    </div>`;
+            });
+
+            const invMenus = document.getElementById('invContentMenus');
+            invMenus.innerHTML = '';
+            if(!currentUser.unlockedMenuStyles) currentUser.unlockedMenuStyles = ["Windows 7"];
+            currentUser.unlockedMenuStyles.forEach(mName => {
+                const isEq = currentUser.equippedMenuStyle === mName;
+                invMenus.innerHTML += `
+                    <div class="inv-item">
+                        <span>🎨 ${mName}</span>
+                        <button class="win7-btn ${isEq ? 'primary' : ''}" ${isEq ? 'disabled' : ''} onclick="socket.emit('selectMenuStyle', '${mName}')">${isEq ? 'Equipado' : 'Equipar'}</button>
+                    </div>`;
             });
         }
 
-        function joinQueue(mode) {
-            freeRoamActive = false;
-            socket.emit('joinQueue', mode);
-            document.getElementById('queueBox').classList.remove('hidden');
+        function openThemeBoxModal() { document.getElementById('themeBoxModal').classList.remove('hidden'); document.getElementById('themeBoxRes').innerText = ''; }
+        function closeThemeBoxModal() { document.getElementById('themeBoxModal').classList.add('hidden'); }
+
+        function openThemeBox() {
+            if (currentUser.coins < 200) { alert('Você precisa de 200 moedas!'); return; }
+            socket.emit('openThemeBox');
         }
+
+        socket.on('boxError', (msg) => { alert(msg); });
+        socket.on('themeBoxOpened', (data) => {
+            currentUser = data.user;
+            renderLobby();
+            document.getElementById('themeBoxRes').innerText = `🎉 Você ganhou o tema: ${data.prize}!`;
+        });
+
+        function joinQueue(mode) { freeRoamActive = false; socket.emit('joinQueue', mode); document.getElementById('queueBox').classList.remove('hidden'); }
         function cancelQueue() { socket.emit('leaveQueue'); document.getElementById('queueBox').classList.add('hidden'); }
         function joinFreeRoam() { freeRoamActive = true; socket.emit('joinFreeRoam'); }
 
@@ -511,7 +539,7 @@
             document.getElementById('resUsername').innerText = res.username;
             document.getElementById('resTitle').innerText = res.won ? "🏆 VITÓRIA!" : "💀 DERROTA!";
             document.getElementById('resOpponent').innerText = `Oponentes: ${res.opponentNames}`;
-            document.getElementById('resElo').innerText = (res.eloDelta >= 0 ? '+' : '') + res.eloDelta;
+            document.getElementById('resXp').innerText = `+${res.xpEarned} XP (Nv. ${res.user.level})`;
             document.getElementById('resCoins').innerText = '+' + res.coinsEarned + ' 💰';
             document.getElementById('resultModal').classList.remove('hidden');
         });
@@ -525,19 +553,16 @@
 
         window.addEventListener('keydown', (e) => handleKey(e, true));
         window.addEventListener('keyup', (e) => handleKey(e, false));
-
         function handleKey(e, state) {
             let changed = false;
             if (['KeyW', 'ArrowUp'].includes(e.code) && keys.up !== state) { keys.up = state; changed = true; }
             if (['KeyS', 'ArrowDown'].includes(e.code) && keys.down !== state) { keys.down = state; changed = true; }
             if (['KeyA', 'ArrowLeft'].includes(e.code) && keys.left !== state) { keys.left = state; changed = true; }
             if (['KeyD', 'ArrowRight'].includes(e.code) && keys.right !== state) { keys.right = state; changed = true; }
-
             if (changed) {
                 if (freeRoamActive) socket.emit('freeRoamInput', { keys });
                 else if (currentRoomId) socket.emit('playerInput', { roomId: currentRoomId, keys });
             }
-
             if (e.code === 'Space' && state) {
                 if (freeRoamActive) socket.emit('freeRoamDash');
                 else if (currentRoomId) socket.emit('playerDash', currentRoomId);
@@ -560,7 +585,6 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // CÂMERA FLUIDA SEGUINDO O JOGADOR NA TELA
             ctx.save();
             if (me) {
                 let camX = canvas.width / 2 - me.x;
@@ -570,19 +594,13 @@
                 ctx.translate(camX, camY);
             }
 
-            // Grade de fundo
             ctx.strokeStyle = 'rgba(255,255,255,0.04)';
             for (let x = 0; x < currentMap.width; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, currentMap.height); ctx.stroke(); }
             for (let y = 0; y < currentMap.height; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(currentMap.width, y); ctx.stroke(); }
 
-            // PAREDES COM SOMBRAS E BLOQUEIO DE VISÃO
             ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
-            ctx.shadowBlur = 18;
-            ctx.shadowOffsetX = 8;
-            ctx.shadowOffsetY = 8;
-            ctx.fillStyle = '#1c2636'; 
-            ctx.strokeStyle = '#48648a'; 
-            ctx.lineWidth = 3;
+            ctx.shadowBlur = 18; ctx.shadowOffsetX = 8; ctx.shadowOffsetY = 8;
+            ctx.fillStyle = '#1c2636'; ctx.strokeStyle = '#48648a'; ctx.lineWidth = 3;
 
             for (let obs of currentMap.obstacles) {
                 ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
@@ -590,7 +608,6 @@
             }
             ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 
-            // Renderiza os jogadores com arredondamento de pixels para evitar flicker na diagonal
             for (let id in roomPlayers) {
                 const p = roomPlayers[id];
                 if (p.hp <= 0) continue;
@@ -598,46 +615,50 @@
                 let renderX = Math.round(p.x);
                 let renderY = Math.round(p.y);
 
+                // Desenha a espada
                 let sImg = swordImgs[currentUser?.equippedSword] || swordImgs["Espada Básica"];
-                ctx.save(); 
-                ctx.translate(renderX, renderY); 
-                ctx.rotate(p.swordAngle);
+                ctx.save(); ctx.translate(renderX, renderY); ctx.rotate(p.swordAngle);
                 if (sImg && sImg.complete) ctx.drawImage(sImg, p.radius + 2, -16, p.swordLength, 32);
                 ctx.restore();
 
-                ctx.save(); 
-                ctx.beginPath(); 
-                ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); 
-                ctx.closePath(); 
-                ctx.clip();
+                // Desenha o coração orbitante e rastro do Lovity
+                if (p.selectedClass === 'Lovity') {
+                    let heartDist = p.radius + 35;
+                    let hX = renderX + Math.cos(p.lovityAngle) * heartDist;
+                    let hY = renderY + Math.sin(p.lovityAngle) * heartDist;
+                    ctx.fillStyle = 'rgba(255, 105, 180, 0.4)';
+                    ctx.beginPath(); ctx.arc(hX - Math.cos(p.lovityAngle)*6, hY - Math.sin(p.lovityAngle)*6, 6, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#ff1493';
+                    ctx.beginPath(); ctx.arc(hX, hY, 8, 0, Math.PI*2); ctx.fill();
+                }
 
+                // Corpo do Jogador com preenchimento correto de aro
+                ctx.save(); ctx.beginPath(); ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
                 if (p.selectedClass === 'Moggity') {
-                    ctx.fillStyle = '#ffde00'; 
-                    ctx.fillRect(renderX - p.radius, renderY - p.radius, p.radius * 2, p.radius * 2);
+                    ctx.fillStyle = '#ffde00'; ctx.fillRect(renderX - p.radius, renderY - p.radius, p.radius * 2, p.radius * 2);
                     if (manFaceImg.complete) ctx.drawImage(manFaceImg, renderX - p.radius - 4, renderY - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
+                } else if (p.selectedClass === 'Lovity') {
+                    ctx.fillStyle = '#ff69b4'; ctx.fillRect(renderX - p.radius, renderY - p.radius, p.radius * 2, p.radius * 2);
+                    if (verityImg.complete) ctx.drawImage(verityImg, renderX - p.radius - 4, renderY - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
+                } else if (p.selectedClass === 'Falsity') {
+                    ctx.fillStyle = '#1e90ff'; ctx.fillRect(renderX - p.radius, renderY - p.radius, p.radius * 2, p.radius * 2);
+                    if (verityImg.complete) ctx.drawImage(verityImg, renderX - p.radius - 4, renderY - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
                 } else {
+                    ctx.fillStyle = '#38bdf8'; ctx.fillRect(renderX - p.radius, renderY - p.radius, p.radius * 2, p.radius * 2);
                     if (verityImg.complete) ctx.drawImage(verityImg, renderX - p.radius - 4, renderY - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
                 }
                 ctx.restore();
 
-                ctx.strokeStyle = p.team === 2 ? '#f87171' : '#38bdf8'; 
-                ctx.lineWidth = 3;
-                ctx.beginPath(); 
-                ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); 
-                ctx.stroke();
+                ctx.strokeStyle = p.team === 2 ? '#f87171' : '#38bdf8'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); ctx.stroke();
 
-                ctx.fillStyle = '#fff'; 
-                ctx.font = 'bold 13px Segoe UI'; 
-                ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Segoe UI'; ctx.textAlign = 'center';
                 ctx.fillText(p.username, renderX, renderY - p.radius - 16);
-                ctx.fillStyle = '#222'; 
-                ctx.fillRect(renderX - 24, renderY - p.radius - 11, 48, 6);
-                ctx.fillStyle = '#22c55e'; 
-                ctx.fillRect(renderX - 24, renderY - p.radius - 11, Math.max(0, (p.hp / p.maxHp) * 48), 6);
+                ctx.fillStyle = '#222'; ctx.fillRect(renderX - 24, renderY - p.radius - 11, 48, 6);
+                ctx.fillStyle = '#22c55e'; ctx.fillRect(renderX - 24, renderY - p.radius - 11, Math.max(0, (p.hp / p.maxHp) * 48), 6);
             }
 
             ctx.restore();
-
             if(!document.getElementById('arenaWin').classList.contains('hidden')) requestAnimationFrame(renderArenaLoop);
         }
     </script>
