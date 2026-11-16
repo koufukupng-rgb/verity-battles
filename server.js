@@ -168,7 +168,20 @@ io.on('connection', (socket) => {
         socket.emit('authSuccess', newUser);
     });
 
-    // MODO DEV (Seguro por Backend)
+    // Rota simulada do Stripe para testes de Pagamento de Verity Coins
+    socket.on('createStripeCheckout', (packageType) => {
+        const email = onlineSockets[socket.id];
+        const user = db.users[email];
+        if (!user) return;
+        
+        let coinsToAdd = packageType === 'large' ? 500 : 100;
+        user.verityCoins = (user.verityCoins || 0) + coinsToAdd;
+        saveDB();
+        socket.emit('userUpdated', user);
+        socket.emit('shopError', `💳 Pagamento Stripe simulado com sucesso! +${coinsToAdd} Verity Coins adicionadas.`);
+    });
+
+    // MODO DEV
     socket.on('devAddCoins', (amount) => {
         if (!isDevUser(socket.id)) return socket.emit('shopError', 'Acesso negado.');
         const user = db.users[onlineSockets[socket.id]];
@@ -192,7 +205,7 @@ io.on('connection', (socket) => {
             user.verityCoins += 1000;
             saveDB();
             socket.emit('userUpdated', user);
-            socket.emit('shopError', '🛠️ MODO DEV: Tudo liberado com sucesso!');
+            socket.emit('shopError', '🛠️ MODO DEV: Tudo liberado!');
         }
     });
 
@@ -274,17 +287,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('shopUpgrade', (type) => {
-        const email = onlineSockets[socket.id];
-        const user = db.users[email];
-        if (!user) return;
-        if (type === 'speed' && user.speedLvl < 10 && user.coins >= user.speedLvl * 200) {
-            user.coins -= user.speedLvl * 200; user.speedLvl++; saveDB(); socket.emit('userUpdated', user);
-        } else if (type === 'hp' && user.hpLvl < 10 && user.coins >= user.hpLvl * 200) {
-            user.coins -= user.hpLvl * 200; user.hpLvl++; saveDB(); socket.emit('userUpdated', user);
-        }
-    });
-
     socket.on('openThemeBox', () => {
         const email = onlineSockets[socket.id];
         const user = db.users[email];
@@ -293,12 +295,12 @@ io.on('connection', (socket) => {
         user.coins -= 200;
 
         const rollPool = [
-            { name: "Windows XP", chance: 0.001, type: 'menu' },
-            { name: "Windows 10", chance: 0.01, type: 'menu' },
-            { name: "Windows 11", chance: 0.05, type: 'menu' },
-            { name: "Neo Cyber", chance: 0.07, type: 'menu' },
-            { name: "Hacker", chance: 0.10, type: 'menu' },
-            { name: "Windows 7", chance: 0.769, type: 'menu' }
+            { name: "Windows XP", chance: 0.001 },
+            { name: "Windows 10", chance: 0.01 },
+            { name: "Windows 11", chance: 0.05 },
+            { name: "Neo Cyber", chance: 0.07 },
+            { name: "Hacker", chance: 0.10 },
+            { name: "Windows 7", chance: 0.769 }
         ];
 
         let rand = Math.random();
@@ -335,7 +337,7 @@ io.on('connection', (socket) => {
             selectedClass: u.selectedClass, x: Math.random() * 3600 + 200, y: Math.random() * 2600 + 200,
             radius: 34, hp: 100, maxHp: 100, speed: baseSpeed, swordSpeed: 0.1, swordLength: sword.length,
             swordAngle: 0, keys: { up: false, down: false, left: false, right: false }, dashCooldown: 0,
-            lovityAngle: 0
+            lovityAngle: 0, dashTrails: []
         };
         socket.emit('freeRoamStart', { map: FREE_MAP, players: freeRoamPlayers });
     });
@@ -344,11 +346,21 @@ io.on('connection', (socket) => {
         if (freeRoamPlayers[socket.id]) freeRoamPlayers[socket.id].keys = data.keys;
     });
 
+    // Dash direcional do Moggity rumo ao mouse
     socket.on('freeRoamDash', () => {
         const p = freeRoamPlayers[socket.id];
         if (p && p.selectedClass === 'Moggity' && p.dashCooldown <= 0) {
-            p.x += Math.cos(p.swordAngle) * 110;
-            p.y += Math.sin(p.swordAngle) * 110;
+            let dashDist = 130;
+            let targetX = p.x + Math.cos(p.swordAngle) * dashDist;
+            let targetY = p.y + Math.sin(p.swordAngle) * dashDist;
+
+            // Salva rastro fluido
+            for(let i=1; i<=4; i++) {
+                p.dashTrails.push({ x: p.x + (Math.cos(p.swordAngle)*(dashDist*(i/4))), y: p.y + (Math.sin(p.swordAngle)*(dashDist*(i/4))), alpha: 0.7 - (i*0.15) });
+            }
+
+            p.x = Math.max(p.radius, Math.min(FREE_MAP.width - p.radius, targetX));
+            p.y = Math.max(p.radius, Math.min(FREE_MAP.height - p.radius, targetY));
             p.dashCooldown = 35;
         }
     });
@@ -377,8 +389,16 @@ io.on('connection', (socket) => {
         if (room && room.players[socket.id]) {
             let p = room.players[socket.id];
             if (p.selectedClass === 'Moggity' && p.dashCooldown <= 0) {
-                p.x += Math.cos(p.swordAngle) * 100;
-                p.y += Math.sin(p.swordAngle) * 100;
+                let dashDist = 120;
+                let targetX = p.x + Math.cos(p.swordAngle) * dashDist;
+                let targetY = p.y + Math.sin(p.swordAngle) * dashDist;
+
+                for(let i=1; i<=4; i++) {
+                    p.dashTrails.push({ x: p.x + (Math.cos(p.swordAngle)*(dashDist*(i/4))), y: p.y + (Math.sin(p.swordAngle)*(dashDist*(i/4))), alpha: 0.7 - (i*0.15) });
+                }
+
+                p.x = Math.max(p.radius, Math.min(room.map.width - p.radius, targetX));
+                p.y = Math.max(p.radius, Math.min(room.map.height - p.radius, targetY));
                 p.dashCooldown = 40;
             }
         }
@@ -417,7 +437,7 @@ function tryCreateMatch(mode) {
             radius: 34, hp: 100, maxHp: 100, speed: baseSpeed, swordDamage: sword.damage,
             swordLength: sword.length, swordSpeed: 0.1, swordAngle: team === 1 ? 0 : Math.PI,
             hitCooldown: 0, dashCooldown: 0, keys: { up: false, down: false, left: false, right: false },
-            lovityAngle: 0
+            lovityAngle: 0, dashTrails: []
         };
         io.sockets.sockets.get(sockId)?.join(roomId);
     });
@@ -436,8 +456,12 @@ setInterval(() => {
         p.y = Math.max(p.radius, Math.min(FREE_MAP.height - p.radius, p.y + vy * p.speed));
         for (let obs of FREE_MAP.obstacles) resolveCircleRect(p, obs);
         p.swordAngle = (p.swordAngle + p.swordSpeed) % (Math.PI * 2);
-        if (p.selectedClass === 'Lovity') p.lovityAngle = (p.lovityAngle + 0.08) % (Math.PI * 2);
+        if (p.selectedClass === 'Lovity') p.lovityAngle = (p.lovityAngle + 0.07) % (Math.PI * 2);
         if (p.dashCooldown > 0) p.dashCooldown--;
+        if (p.dashTrails) {
+            p.dashTrails.forEach(t => t.alpha -= 0.05);
+            p.dashTrails = p.dashTrails.filter(t => t.alpha > 0);
+        }
     }
     io.emit('freeRoamState', freeRoamPlayers);
 
@@ -456,9 +480,13 @@ setInterval(() => {
             p.y = Math.max(p.radius, Math.min(room.map.height - p.radius, p.y + vy * p.speed));
             for (let obs of room.map.obstacles) resolveCircleRect(p, obs);
             p.swordAngle = (p.swordAngle + p.swordSpeed) % (Math.PI * 2);
-            if (p.selectedClass === 'Lovity') p.lovityAngle = (p.lovityAngle + 0.08) % (Math.PI * 2);
+            if (p.selectedClass === 'Lovity') p.lovityAngle = (p.lovityAngle + 0.07) % (Math.PI * 2);
             if (p.hitCooldown > 0) p.hitCooldown--;
             if (p.dashCooldown > 0) p.dashCooldown--;
+            if (p.dashTrails) {
+                p.dashTrails.forEach(t => t.alpha -= 0.05);
+                p.dashTrails = p.dashTrails.filter(t => t.alpha > 0);
+            }
         }
 
         for (let i = 0; i < pList.length; i++) {
@@ -476,10 +504,10 @@ setInterval(() => {
                 }
 
                 if (a.selectedClass === 'Lovity') {
-                    let heartDist = a.radius + 35;
+                    let heartDist = a.radius + 60; // Coração mais para fora
                     let hX = a.x + Math.cos(a.lovityAngle) * heartDist;
                     let hY = a.y + Math.sin(a.lovityAngle) * heartDist;
-                    if (Math.hypot(hX - b.x, hY - b.y) < b.radius + 10 && a.hitCooldown <= 0) {
+                    if (Math.hypot(hX - b.x, hY - b.y) < b.radius + 12 && a.hitCooldown <= 0) {
                         b.hp = Math.max(0, b.hp - 6);
                     }
                 }
