@@ -24,10 +24,11 @@
         <button onclick="buyUpgrade('heal')">Curar Vida (5 💰)</button>
     </div>
 
+    <!-- Script do Socket.io fornecido pelo servidor -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // Lembre-se de alterar para o link do Render quando for testar online
-        const socket = io('http://localhost:3000'); 
+        // Conexão apontando diretamente para o seu serviço no Render
+        const socket = io('https://verity-battles.onrender.com'); 
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -67,13 +68,16 @@
             socket.emit('upgrade', type);
         }
 
+        // Loop de envio de comandos para o servidor (60 vezes por segundo)
         setInterval(() => {
             socket.emit('move', keys);
         }, 1000 / 60);
 
+        // Loop de renderização gráfica no Canvas
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // Desenha a grade de fundo da arena
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += 40) {
@@ -83,6 +87,7 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
+            // Desenha cada Verity conectado
             for (let id in players) {
                 let p = players[id];
 
@@ -102,12 +107,14 @@
                 }
                 ctx.restore();
 
+                // Borda do Verity (destaca o seu próprio com cor ciano)
                 ctx.strokeStyle = (id === myId) ? '#00ffcc' : '#fff';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.stroke();
 
+                // Barra de vida acima do Verity
                 ctx.fillStyle = 'red';
                 ctx.fillRect(p.x - 20, p.y - p.radius - 12, 40, 6);
                 ctx.fillStyle = 'lime';
