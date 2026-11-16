@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Verity Battles - Competitive Arena (Windows 7 Edition)</title>
+    <title>Verity Battles - Competitive Arena</title>
     <!-- Biblioteca Oficial Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
@@ -108,7 +108,7 @@
             display: flex; align-items: center; justify-content: space-between; padding: 8px;
             border: 1px solid var(--card-border); border-radius: 4px; margin-bottom: 8px; background: rgba(120, 150, 190, 0.08);
         }
-        .shop-item img { width: 32px; height: 32px; object-fit: contain; margin-right: 10px; }
+        .shop-item img { width: 36px; height: 36px; object-fit: contain; margin-right: 10px; border: 1px solid #ccc; border-radius: 3px; background: #fff; padding: 2px; }
 
         .win7-taskbar {
             height: 38px; background: linear-gradient(to bottom, rgba(45, 85, 135, 0.85), rgba(15, 35, 65, 0.95));
@@ -187,7 +187,7 @@
                     <button class="win7-btn primary" onclick="joinQueue('1v1')">⚔️ Duelo 1v1</button>
                     <button class="win7-btn primary" onclick="joinQueue('2v2')">🛡️ Equipe 2v2</button>
                 </div>
-                <button class="win7-btn" style="background: linear-gradient(to bottom, #ffeb3b, #fbc02d); font-weight: bold; width: 100%;" onclick="joinFreeRoam()">🌍 Mapa Livre Gigante (Até 25)</button>
+                <button class="win7-btn" style="background: linear-gradient(to bottom, #ffeb3b, #fbc02d); font-weight: bold; width: 100%;" onclick="joinFreeRoam()">🌍 Mega Labirinto Livre (Até 25)</button>
                 
                 <div id="queueBox" class="hidden" style="margin-top: 10px; font-size: 12px; color: #1979ca; font-weight: bold;">
                     ⏳ <span id="queueText">Procurando oponente real...</span>
@@ -242,14 +242,14 @@
         </div>
     </div>
 
-    <!-- JANELA 3: ARENA DE BATALHA -->
+    <!-- JANELA 3: ARENA DE BATALHA COM CÂMERA FLUIDA -->
     <div id="arenaWin" class="aero-window hidden">
         <div class="aero-titlebar">
             <span id="arenaTitle">⚔️ Arena</span>
             <div class="aero-controls"><div class="aero-ctrl-btn close" onclick="location.reload()" title="Sair">✕</div></div>
         </div>
         <div class="aero-body" style="padding: 8px;">
-            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <canvas id="gameCanvas" width="950" height="680"></canvas>
         </div>
     </div>
 
@@ -274,7 +274,7 @@
     <div class="win7-taskbar">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div class="start-orb" title="Verity OS 7">❖</div>
-            <span>Verity Battles Competitive v2.6</span>
+            <span>Verity Battles Competitive v2.8</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <button class="win7-btn" style="padding: 2px 8px; font-size: 11px;" onclick="toggleTheme()">🌓 Tema</button>
@@ -329,7 +329,6 @@
         const swordImgs = {};
         SWORD_CATALOG.forEach(s => { const img = new Image(); img.src = s.png; swordImgs[s.name] = img; });
 
-        // Carrossel da tela de login
         let loginImages = ['verity.png', 'man.png'];
         let loginIdx = 0;
         setInterval(() => {
@@ -434,7 +433,7 @@
             document.getElementById('lblSpdLvl').innerText = currentUser.speedLvl;
             document.getElementById('lblHpLvl').innerText = currentUser.hpLvl;
 
-            // Aba de Espadas
+            // Aba de Espadas com os PNGs dos ícones renderizados
             const swordList = document.getElementById('shopTabSwords');
             swordList.innerHTML = '';
             SWORD_CATALOG.forEach(sw => {
@@ -443,6 +442,7 @@
                 swordList.innerHTML += `
                     <div class="shop-item">
                         <div style="display:flex; align-items:center;">
+                            <img src="${sw.png}" alt="${sw.name}">
                             <div>
                                 <strong style="font-size:13px;">${sw.name}</strong><br>
                                 <small>Dano: ${sw.dmg}</small>
@@ -488,13 +488,11 @@
 
         socket.on('freeRoamStart', (data) => {
             currentMap = data.map; roomPlayers = data.players; currentRoomId = null;
-            document.getElementById('arenaTitle').innerText = `🌍 Mapa Livre Gigante (Até 25 Pessoas)`;
+            document.getElementById('arenaTitle').innerText = `🌍 Mega Labirinto Livre (Até 25 Pessoas)`;
             startArenaSession();
         });
 
         function startArenaSession() {
-            const canvas = document.getElementById('gameCanvas');
-            canvas.width = currentMap.width; canvas.height = currentMap.height;
             document.getElementById('lobbyWin').classList.add('hidden');
             document.getElementById('settingsModal').classList.add('hidden');
             document.getElementById('arenaWin').classList.remove('hidden');
@@ -537,7 +535,6 @@
                 else if (currentRoomId) socket.emit('playerInput', { roomId: currentRoomId, keys });
             }
 
-            // Habilidade especial Dash do Moggity na Barra de Espaço
             if (e.code === 'Space' && state) {
                 if (freeRoamActive) socket.emit('freeRoamDash');
                 else if (currentRoomId) socket.emit('playerDash', currentRoomId);
@@ -560,19 +557,37 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            // CÂMERA FLUIDA SEGUINDO O JOGADOR NA TELA
+            ctx.save();
+            if (me) {
+                let camX = canvas.width / 2 - me.x;
+                let camY = canvas.height / 2 - me.y;
+                camX = Math.min(0, Math.max(canvas.width - currentMap.width, camX));
+                camY = Math.min(0, Math.max(canvas.height - currentMap.height, camY));
+                ctx.translate(camX, camY);
+            }
+
             // Grade de fundo
             ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-            for (let x = 0; x < canvas.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke(); }
-            for (let y = 0; y < canvas.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke(); }
+            for (let x = 0; x < currentMap.width; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, currentMap.height); ctx.stroke(); }
+            for (let y = 0; y < currentMap.height; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(currentMap.width, y); ctx.stroke(); }
 
-            // Paredes com sombras e bloqueio de visão
-            ctx.fillStyle = '#222d3d'; ctx.strokeStyle = '#537194'; ctx.lineWidth = 2;
+            // PAREDES COM SOMBRAS E BLOQUEIO DE VISÃO
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+            ctx.shadowBlur = 18;
+            ctx.shadowOffsetX = 8;
+            ctx.shadowOffsetY = 8;
+            ctx.fillStyle = '#1c2636'; 
+            ctx.strokeStyle = '#48648a'; 
+            ctx.lineWidth = 3;
+
             for (let obs of currentMap.obstacles) {
                 ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
             }
+            ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 
-            // Renderiza jogadores
+            // Renderiza os jogadores
             for (let id in roomPlayers) {
                 const p = roomPlayers[id];
                 if (p.hp <= 0) continue;
@@ -594,11 +609,13 @@
                 ctx.strokeStyle = p.team === 2 ? '#f87171' : '#38bdf8'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.stroke();
 
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Segoe UI'; ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Segoe UI'; ctx.textAlign = 'center';
                 ctx.fillText(p.username, p.x, p.y - p.radius - 16);
                 ctx.fillStyle = '#222'; ctx.fillRect(p.x - 24, p.y - p.radius - 11, 48, 6);
                 ctx.fillStyle = '#22c55e'; ctx.fillRect(p.x - 24, p.y - p.radius - 11, Math.max(0, (p.hp / p.maxHp) * 48), 6);
             }
+
+            ctx.restore();
 
             if(!document.getElementById('arenaWin').classList.contains('hidden')) requestAnimationFrame(renderArenaLoop);
         }
