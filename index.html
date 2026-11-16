@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Verity Arena Online</title>
+    <style>
+        body { background: #111; color: #fff; font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; }
+        canvas { background: #222; border: 4px solid #444; box-shadow: 0 0 20px rgba(0,0,0,0.8); display: block; margin: 10px auto; }
+        #ui { margin-top: 10px; }
+        button { background: #ffcc00; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 5px; margin: 5px; }
+        button:hover { background: #e6b800; }
+    </style>
+</head>
+<body>
+    <h1>🟡 Verity Arena Online ⚔️</h1>
+    <p>Use as **Setas do Teclado** ou **W, A, S, D** para mover seu Verity na arena!</p>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <div id="ui">
+        <div id="stats">Moedas: 💰 <span id="coins">0</span> | HP: ❤️ <span id="hp">100</span></div>
+        <button onclick="buyUpgrade('speed')">Upgrade Velocidade (10 💰)</button>
+        <button onclick="buyUpgrade('damage')">Upgrade Dano (15 💰)</button>
+        <button onclick="buyUpgrade('heal')">Curar Vida (5 💰)</button>
+    </div>
+
+    <!-- Script do Socket.io fornecido pelo servidor -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        // Mude para o link do seu backend no Render quando publicar (ex: https://seu-app.onrender.com)
+        const socket = io('http://localhost:3000'); 
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Carrega a imagem Verity da pasta assets
+        const verityImg = new Image();
+        verityImg.src = 'assets/verity.png';
+
+        let myId = null;
+        let players = {};
+        const keys = { up: false, down: false, left: false, right: false };
+
+        window.addEventListener('keydown', (e) => updateKeys(e, true));
+        window.addEventListener('keyup', (e) => updateKeys(e, false));
+
+        function updateKeys(e, isPressed) {
+            if (['ArrowUp', 'KeyW'].includes(e.code)) keys.up = isPressed;
+            if (['ArrowDown', 'KeyS'].includes(e.code)) keys.down = isPressed;
+            if (['ArrowLeft', 'KeyA'].includes(e.code)) keys.left = isPressed;
+            if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = isPressed;
+        }
+
+        socket.on('init', (data) => {
+            myId = data.id;
+            players = data.players;
+        });
+
+        socket.on('updatePlayers', (serverPlayers) => {
+            players = serverPlayers;
+            if (myId && players[myId]) {
+                document.getElementById('coins').innerText = players[myId].coins;
+                document.getElementById('hp').innerText = Math.round(players[myId].hp);
+            }
+        });
+
+        function buyUpgrade(type) {
+            socket.emit('upgrade', type);
+        }
+
+        // Loop de envio de comandos para o servidor
+        setInterval(() => {
+            socket.emit('move', keys);
+        }, 1000 / 60);
+
+        // Loop de renderização gráfica
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenha grade de fundo da arena
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // Desenha cada Verity
+            for (let id in players) {
+                let p = players[id];
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+
+                // Desenha a imagem Verity arredondada com a textura enviada
+                ctx.beginPath();
+                ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
+                ctx.closePath();
+                ctx.clip();
+
+                if (verityImg.complete) {
+                    ctx.drawImage(verityImg, -p.radius, -p.radius, p.radius * 2, p.radius * 2);
+                } else {
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // Borda e Barra de HP acima do Verity
+                ctx.strokeStyle = (id === myId) ? '#00ffcc' : '#fff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Barra de vida
+                ctx.fillStyle = 'red';
+                ctx.fillRect(p.x - 20, p.y - p.radius - 12, 40, 6);
+                ctx.fillStyle = 'lime';
+                ctx.fillRect(p.x - 20, p.y - p.radius - 12, (p.hp / p.maxHp) * 40, 6);
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        draw();
+    </script>
+</body>
+</html>
