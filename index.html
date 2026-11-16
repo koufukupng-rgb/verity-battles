@@ -14,6 +14,7 @@
             --bg-wallpaper: radial-gradient(circle at 30% 20%, #3a8ee6 0%, #15437a 55%, #091d36 100%);
             --card-bg: #ffffff;
             --card-border: #b8c9dc;
+            --win-radius: 8px;
         }
 
         body.theme-windows-xp {
@@ -21,12 +22,14 @@
             --win-glass-inner: #ece9d8;
             --win-text-main: #000;
             --win-border: #002366;
-            --bg-wallpaper: #3a6ea5;
+            --bg-wallpaper: url('winxp.png') no-repeat center center fixed;
+            --bg-size: cover;
             --card-bg: #fff;
             --card-border: #7f9db9;
+            --win-radius: 4px;
         }
-        body.theme-windows-xp .aero-window { border-radius: 8px 8px 0 0; border: 2px solid #0055ea; box-shadow: 3px 3px 10px rgba(0,0,0,0.5); }
-        body.theme-windows-xp .aero-titlebar { background: linear-gradient(to right, #0055ea, #2a88ff); border-radius: 6px 6px 0 0; }
+        body.theme-windows-xp .aero-window { border-radius: 6px 6px 0 0; border: 2px solid #0055ea; box-shadow: 3px 3px 10px rgba(0,0,0,0.5); }
+        body.theme-windows-xp .aero-titlebar { background: linear-gradient(to right, #0055ea, #2a88ff); border-radius: 4px 4px 0 0; }
         body.theme-windows-xp .win7-btn { background: linear-gradient(to bottom, #fff, #ece9d8); border: 1px solid #7f9db9; border-radius: 3px; font-family: Tahoma, sans-serif; }
 
         body.theme-windows-10 {
@@ -37,6 +40,7 @@
             --bg-wallpaper: #121212;
             --card-bg: #333333;
             --card-border: #555555;
+            --win-radius: 0px;
         }
 
         body.theme-windows-11 {
@@ -47,8 +51,10 @@
             --bg-wallpaper: radial-gradient(circle, #2b1055, #7597de);
             --card-bg: rgba(60, 60, 60, 0.6);
             --card-border: rgba(255, 255, 255, 0.2);
+            --win-radius: 12px;
         }
 
+        /* Tema Hacker com cantos quadrados e Matrix */
         body.theme-hacker {
             --win-glass: rgba(0, 20, 0, 0.92);
             --win-glass-inner: rgba(0, 10, 0, 0.96);
@@ -57,6 +63,7 @@
             --bg-wallpaper: #000;
             --card-bg: #031403;
             --card-border: #00ff66;
+            --win-radius: 0px;
         }
         #matrixCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; display: none; }
         body.theme-hacker #matrixCanvas { display: block; }
@@ -69,30 +76,31 @@
             --bg-wallpaper: radial-gradient(circle, #001f3f, #000814);
             --card-bg: #0a1f35;
             --card-border: #00d2ff;
+            --win-radius: 6px;
         }
 
         * { box-sizing: border-box; user-select: none; }
-        body { background: var(--bg-wallpaper); font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; color: var(--win-text-main); }
+        body { background: var(--bg-wallpaper); background-size: cover; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; color: var(--win-text-main); }
 
-        .aero-window { background: var(--win-glass); border: 1px solid var(--win-border); border-radius: 8px; box-shadow: var(--win-shadow); backdrop-filter: blur(12px); padding: 6px; margin: auto; }
+        .aero-window { background: var(--win-glass); border: 1px solid var(--win-border); border-radius: var(--win-radius); box-shadow: var(--win-shadow); backdrop-filter: blur(12px); padding: 6px; margin: auto; }
         .aero-titlebar { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); font-size: 13px; font-weight: 600; }
         .aero-controls { display: flex; gap: 2px; }
-        .aero-ctrl-btn { width: 26px; height: 18px; border: 1px solid rgba(255,255,255,0.4); border-radius: 3px; background: rgba(255,255,255,0.2); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .aero-ctrl-btn { width: 26px; height: 18px; border: 1px solid rgba(255,255,255,0.4); border-radius: var(--win-radius); background: rgba(255,255,255,0.2); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .aero-ctrl-btn.close { background: #c5221f; width: 36px; }
-        .aero-body { background: var(--win-glass-inner); border: 1px solid rgba(0,0,0,0.35); border-radius: 4px; padding: 14px; color: var(--win-text-main); }
+        .aero-body { background: var(--win-glass-inner); border: 1px solid rgba(0,0,0,0.35); border-radius: var(--win-radius); padding: 14px; color: var(--win-text-main); }
 
-        .win7-btn { background: linear-gradient(to bottom, #f2f2f2, #cfcfcf); border: 1px solid #707070; border-radius: 3px; padding: 6px 12px; font-size: 12px; color: var(--win-text-main); cursor: pointer; transition: 0.1s; }
+        .win7-btn { background: linear-gradient(to bottom, #f2f2f2, #cfcfcf); border: 1px solid #707070; border-radius: var(--win-radius); padding: 6px 12px; font-size: 12px; color: var(--win-text-main); cursor: pointer; transition: 0.1s; }
         .win7-btn:hover { filter: brightness(1.15); border-color: #3c7fb1; }
         .win7-btn.primary { font-weight: 600; border-color: #3c7fb1; }
 
-        .google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: #fff; border: 1px solid #888; border-radius: 4px; padding: 8px; font-weight: 600; color: #333; cursor: pointer; margin-top: 8px; }
-        .win7-input { width: 100%; padding: 7px 10px; border: 1px solid #abadb3; border-radius: 2px; font-size: 13px; margin-bottom: 10px; background: #fff; color: #111; }
+        .google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; background: #fff; border: 1px solid #888; border-radius: var(--win-radius); padding: 8px; font-weight: 600; color: #333; cursor: pointer; margin-top: 8px; }
+        .win7-input { width: 100%; padding: 7px 10px; border: 1px solid #abadb3; border-radius: var(--win-radius); font-size: 13px; margin-bottom: 10px; background: #fff; color: #111; }
 
         .lobby-grid-main { display: grid; grid-template-columns: 280px 340px 280px; gap: 12px; width: 940px; max-width: 98vw; margin: auto; }
-        .lobby-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px; max-height: 460px; overflow-y: auto; text-align: left; }
+        .lobby-panel { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--win-radius); padding: 10px; max-height: 460px; overflow-y: auto; text-align: left; }
         
-        .center-avatar-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; max-height: 460px; }
-        .avatar-circle-wrap { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #3c7fb1; box-shadow: 0 4px 15px rgba(0,0,0,0.35); margin: 6px 0; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        .center-avatar-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--win-radius); padding: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; max-height: 460px; }
+        .avatar-circle-wrap { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #3c7fb1; box-shadow: 0 4px 15px rgba(0,0,0,0.35); margin: 6px 0; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; background-color: #38bdf8; }
         
         .avatar-circle-wrap.moggity-bg { background-color: #ffde00 !important; }
         .avatar-circle-wrap.lovity-bg { background-color: #ff69b4 !important; }
@@ -101,13 +109,23 @@
         .avatar-circle-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
         .shop-tabs { display: flex; gap: 4px; margin-bottom: 8px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px; }
-        .shop-tab-btn { flex: 1; padding: 4px; font-size: 10px; font-weight: bold; cursor: pointer; text-align: center; background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.2); border-radius: 3px; color: var(--win-text-main); }
+        .shop-tab-btn { flex: 1; padding: 4px; font-size: 10px; font-weight: bold; cursor: pointer; text-align: center; background: rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.2); border-radius: var(--win-radius); color: var(--win-text-main); }
         .shop-tab-btn.active { background: #3c7fb1; color: #fff; }
 
-        .shop-item, .inv-item { display: flex; align-items: center; justify-content: space-between; padding: 6px; border: 1px solid var(--card-border); border-radius: 4px; margin-bottom: 6px; background: rgba(120, 150, 190, 0.08); font-size: 11px; }
+        .shop-item, .inv-item { display: flex; align-items: center; justify-content: space-between; padding: 6px; border: 1px solid var(--card-border); border-radius: var(--win-radius); margin-bottom: 6px; background: rgba(120, 150, 190, 0.08); font-size: 11px; }
         .shop-item img, .inv-item img { width: 28px; height: 28px; object-fit: contain; margin-right: 8px; border: 1px solid #ccc; border-radius: 3px; background: #fff; padding: 2px; }
 
-        .missions-bar { width: 940px; max-width: 98vw; margin: 4px auto 0 auto; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .missions-bar { width: 940px; max-width: 98vw; margin: 4px auto 0 auto; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--win-radius); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+
+        /* Estilos da Roleta Real estilo CS:GO */
+        .case-opening-container { width: 440px; text-align: center; }
+        .case-viewport { width: 100%; height: 110px; background: #111; border: 3px solid #f39c12; border-radius: 6px; overflow: hidden; position: relative; margin: 15px 0; display: flex; align-items: center; }
+        .case-pointer { position: absolute; top: 0; bottom: 0; left: 50%; width: 4px; background: #e74c3c; transform: translateX(-50%); z-index: 10; box-shadow: 0 0 10px #e74c3c; }
+        .case-roller { display: flex; gap: 8px; position: absolute; left: 0; will-change: transform; }
+        .case-card { min-width: 105px; height: 90px; background: #222; border: 2px solid #444; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: bold; text-align: center; padding: 4px; }
+        .case-card.common { border-color: #95a5a6; background: #2c3e50; }
+        .case-card.rare { border-color: #3498db; background: #1b4f72; }
+        .case-card.legendary { border-color: #f1c40f; background: #7d6608; }
 
         .win7-taskbar { height: 38px; background: linear-gradient(to bottom, #2d5587, #0f2341); border-top: 1px solid rgba(255,255,255,0.45); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; color: #fff; font-size: 12px; }
         .start-orb { width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #7ce2ff, #1979ca); border: 1px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; }
@@ -118,7 +136,7 @@
 <body class="theme-windows-7">
     <canvas id="matrixCanvas"></canvas>
 
-    <!-- PAINEL DO MODO DEV (Exibido visualmente apenas para koufukupng@gmail.com) -->
+    <!-- PAINEL DEV -->
     <div id="devMenuPanel" class="aero-window hidden" style="position: fixed; top: 10px; right: 10px; z-index: 10000; width: 220px; background: rgba(20, 0, 0, 0.9); border: 2px solid #e74c3c;">
         <div class="aero-titlebar" style="background: linear-gradient(to right, #c0392b, #e74c3c);">
             <span>🛠️ Painel Dev</span>
@@ -152,7 +170,7 @@
         </div>
     </div>
 
-    <!-- LOBBY PRINCIPAL -->
+    <!-- LOBBY -->
     <div id="lobbyWin" class="aero-window hidden" style="width: auto; padding: 6px;">
         <div class="aero-titlebar">
             <span>⚔️ Verity Battles - Central Principal</span>
@@ -165,7 +183,7 @@
             
             <div class="lobby-grid-main">
                 
-                <!-- INVENTÁRIO (ESQUERDA) -->
+                <!-- INVENTÁRIO -->
                 <div class="lobby-panel">
                     <h4 style="margin: 0 0 8px 0; font-size: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px;">🎒 Seu Inventário</h4>
                     <div class="shop-tabs">
@@ -178,7 +196,7 @@
                     <div id="invContentMenus" class="hidden"></div>
                 </div>
 
-                <!-- CENTRO (AVATAR, NÍVEL E MATCHMAKING) -->
+                <!-- CENTRO -->
                 <div class="center-avatar-box">
                     <div style="width: 100%; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 4px;">
                         <span>👤 <span id="lblUser">Player</span></span>
@@ -203,29 +221,30 @@
                     <button class="win7-btn" style="background: linear-gradient(to bottom, #ffeb3b, #fbc02d); color:#111; font-weight: bold; width: 100%; font-size: 11px; margin-bottom: 6px; padding:6px;" onclick="joinFreeRoam()">🌍 Labirinto Livre (25p)</button>
                     <button class="win7-btn" style="background: linear-gradient(to bottom, #9b59b6, #8e44ad); color:#fff; font-weight: bold; width: 100%; font-size: 11px; padding:6px;" onclick="openThemeBoxModal()">🎁 Caixa de Temas (200 💰)</button>
 
-                    <div id="queueBox" class="hidden" style="margin-top: 6px; font-size: 11px; color: #1979ca; font-weight: bold;">⏳ Buscando partida... <button class="win7-btn" style="padding:1px 4px;" onclick="cancelQueue()">X</button></div>
+                    <div id="queueBox" class="hidden" style="margin-top: 6px; font-size: 11px; color: #1979ca; font-weight: bold;">⏳ Buscando... <button class="win7-btn" style="padding:1px 4px;" onclick="cancelQueue()">X</button></div>
                 </div>
 
-                <!-- LOJA (DIREITA) -->
+                <!-- LOJA & STRIPE -->
                 <div class="lobby-panel">
-                    <h4 style="margin: 0 0 8px 0; font-size: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px;">🛒 Loja & Pagamentos</h4>
+                    <h4 style="margin: 0 0 8px 0; font-size: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px;">🛒 Loja & Stripe</h4>
                     <div class="shop-tabs">
                         <div id="shopTabBtnSwords" class="shop-tab-btn active" onclick="switchShopTab('swords')">Espadas</div>
                         <div id="shopTabBtnClasses" class="shop-tab-btn" onclick="switchShopTab('classes')">Classes</div>
-                        <div id="shopTabBtnCoins" class="shop-tab-btn" onclick="switchShopTab('coins')" style="color: #e74c3c; font-weight:bold;">Verity Coins</div>
+                        <div id="shopTabBtnCoins" class="shop-tab-btn" onclick="switchShopTab('coins')" style="color: #e74c3c; font-weight:bold;">V-Coins</div>
                     </div>
                     <div id="shopTabSwords"></div>
                     <div id="shopTabClasses" class="hidden"></div>
                     <div id="shopTabCoins" class="hidden" style="text-align: center; padding: 10px;">
-                        <img src="verity.png" style="width: 40px; height: 40px; border-radius:50%; border:2px solid #e74c3c;">
-                        <p style="font-size: 11px; margin: 6px 0;">Compre Falsity e itens exclusivos com Verity Coins!</p>
-                        <button class="win7-btn primary" style="background: #e74c3c; color: #fff; width: 100%; font-weight:bold;" onclick="alert('Integração com Stripe em breve!')">💳 Comprar via Stripe (Em breve)</button>
+                        <img src="verity.png" style="width: 36px; height: 36px; border-radius:50%; border:2px solid #e74c3c;">
+                        <p style="font-size: 11px; margin: 4px 0;">Compre Verity Coins oficiais via Stripe:</p>
+                        <button class="win7-btn primary" style="background: #635bff; color: #fff; width: 100%; font-size:11px; font-weight:bold; margin-bottom:6px;" onclick="socket.emit('createStripeCheckout', 'small')">💳 100 V-Coins (R$ 9,90)</button>
+                        <button class="win7-btn primary" style="background: #635bff; color: #fff; width: 100%; font-size:11px; font-weight:bold;" onclick="socket.emit('createStripeCheckout', 'large')">💳 500 V-Coins (R$ 34,90)</button>
                     </div>
                 </div>
 
             </div>
 
-            <!-- MISSÕES DIÁRIAS -->
+            <!-- MISSÕES -->
             <div class="missions-bar">
                 <div>📋 <strong>Missões Diárias:</strong> Jogue no Labirinto (0/1) | Vença um duelo 1v1 (0/1)</div>
                 <div style="color: #27ae60; font-weight: bold;">Recompensa: +100 💰</div>
@@ -234,13 +253,17 @@
         </div>
     </div>
 
-    <!-- MODAL CAIXA DE TEMAS -->
-    <div id="themeBoxModal" class="aero-window hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 997; width: 380px;">
+    <!-- MODAL ROLETA DE CAIXA DE TEMAS (CS:GO STYLE) -->
+    <div id="themeBoxModal" class="aero-window hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 997;">
         <div class="aero-titlebar"><span>🎁 Caixa de Temas de Menu</span><div class="aero-controls"><div class="aero-ctrl-btn close" onclick="closeThemeBoxModal()">✕</div></div></div>
-        <div class="aero-body" style="text-align: center;">
-            <p style="font-size: 12px; margin-top:0;">Tente conseguir temas raros de Windows (XP, Win 10, Win 11, Hacker e Neo Cyber)!</p>
-            <div id="themeBoxRes" style="font-size: 14px; font-weight: bold; margin: 15px 0; min-height: 25px; color: #f1c40f;"></div>
-            <button id="spinThemeBtn" class="win7-btn primary" style="width: 100%; font-weight: bold;" onclick="openThemeBox()">Abrir Caixa (200 💰)</button>
+        <div class="aero-body case-opening-container">
+            <p style="font-size: 12px; margin-top:0;">Gire a roleta e tente conseguir temas raros (XP 0.1%, Win 10, Win 11, Hacker, Neo Cyber)!</p>
+            <div class="case-viewport">
+                <div class="case-pointer"></div>
+                <div id="caseRoller" class="case-roller"></div>
+            </div>
+            <div id="themeBoxRes" style="font-size: 13px; font-weight: bold; margin: 8px 0; min-height: 20px; color: #f1c40f;"></div>
+            <button id="spinThemeBtn" class="win7-btn primary" style="width: 100%; font-weight: bold;" onclick="openThemeBox()">Girar Caixa (200 💰)</button>
         </div>
     </div>
 
@@ -280,7 +303,7 @@
     </div>
 
     <div class="win7-taskbar">
-        <div style="display: flex; align-items: center; gap: 12px;"><div class="start-orb">❖</div><span>Verity Battles v3.2</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div class="start-orb">❖</div><span>Verity Battles v3.3</span></div>
         <span id="winClock">16:50</span>
     </div>
 
@@ -298,7 +321,7 @@
 
         const CLASS_CATALOG = [
             { name: "Verity", desc: "Clássico padrão", cost: 0, currency: 'coins' },
-            { name: "Moggity", desc: "Man Face com Fundo Amarelo & Dash", cost: 1000, currency: 'coins' },
+            { name: "Moggity", desc: "Man Face com Fundo Amarelo & Dash Direcional", cost: 1000, currency: 'coins' },
             { name: "Lovity", desc: "Fundo Rosa + Coração Orbitante (1.55x Velocidade)", cost: 1800, currency: 'coins' },
             { name: "Falsity", desc: "Fundo Azul comprável com Verity Coins", cost: 150, currency: 'verityCoins' },
             { name: "CyberNinja", desc: "Guerreiro letal", cost: 2500, currency: 'coins' }
@@ -405,8 +428,6 @@
             document.getElementById('loginWin').classList.add('hidden');
             document.getElementById('lobbyWin').classList.remove('hidden');
             renderLobby();
-
-            // Verificação de segurança visual estrita para exibir o painel Dev
             if (user.email === 'koufukupng@gmail.com') {
                 document.getElementById('devMenuPanel').classList.remove('hidden');
             }
@@ -512,19 +533,62 @@
             });
         }
 
-        function openThemeBoxModal() { document.getElementById('themeBoxModal').classList.remove('hidden'); document.getElementById('themeBoxRes').innerText = ''; }
+        // Roleta real estilo CS:GO para a Caixa de Temas
+        function openThemeBoxModal() { document.getElementById('themeBoxModal').classList.remove('hidden'); setupRollerDefault(); }
         function closeThemeBoxModal() { document.getElementById('themeBoxModal').classList.add('hidden'); }
+
+        function setupRollerDefault() {
+            const roller = document.getElementById('caseRoller');
+            roller.innerHTML = '';
+            for(let i=0; i<30; i++) {
+                roller.innerHTML += `<div class="case-card common">🎁 Caixa de Temas<br><small>Gire para abrir</small></div>`;
+            }
+            roller.style.transition = 'none';
+            roller.style.transform = 'translateX(0px)';
+            document.getElementById('themeBoxRes').innerText = '';
+            document.getElementById('spinThemeBtn').disabled = false;
+        }
 
         function openThemeBox() {
             if (currentUser.coins < 200) { alert('Você precisa de 200 moedas!'); return; }
+            document.getElementById('spinThemeBtn').disabled = true;
             socket.emit('openThemeBox');
         }
 
-        socket.on('boxError', (msg) => { alert(msg); });
+        socket.on('boxError', (msg) => { alert(msg); document.getElementById('spinThemeBtn').disabled = false; });
         socket.on('themeBoxOpened', (data) => {
             currentUser = data.user;
             renderLobby();
-            document.getElementById('themeBoxRes').innerText = `🎉 Você ganhou o tema: ${data.prize}!`;
+
+            const roller = document.getElementById('caseRoller');
+            roller.innerHTML = '';
+            
+            let itemsPool = [
+                {name: "Windows 7", type: "common"}, {name: "Hacker", type: "rare"},
+                {name: "Neo Cyber", type: "rare"}, {name: "Windows 11", type: "legendary"},
+                {name: "Windows 10", type: "rare"}, {name: "Windows XP", type: "legendary"}
+            ];
+
+            let winningItemName = data.prize;
+            let winningIndex = 38; 
+
+            let htmlCards = '';
+            for(let i=0; i<50; i++) {
+                let item = (i === winningIndex) ? {name: winningItemName, type: (winningItemName === 'Windows XP' ? 'legendary' : 'rare')} : itemsPool[Math.floor(Math.random()*itemsPool.length)];
+                htmlCards += `<div class="case-card ${item.type}">${item.name}</div>`;
+            }
+            roller.innerHTML = htmlCards;
+
+            let cardWidth = 113; 
+            let offset = (winningIndex * cardWidth) - 165 + (Math.random() * 40 - 20);
+
+            roller.style.transition = 'transform 4.5s cubic-bezier(0.08, 0.6, 0.12, 1)';
+            roller.style.transform = `translateX(-${offset}px)`;
+
+            setTimeout(() => {
+                document.getElementById('themeBoxRes').innerText = `🎉 Parabéns! Você ganhou o tema: ${winningItemName}!`;
+                document.getElementById('spinThemeBtn').disabled = false;
+            }, 4600);
         });
 
         function joinQueue(mode) { freeRoamActive = false; socket.emit('joinQueue', mode); document.getElementById('queueBox').classList.remove('hidden'); }
@@ -589,6 +653,19 @@
             }
         }
 
+        // Rastreamento exato do ângulo do mouse em relação ao canvas para o Dash direcional
+        window.addEventListener('mousemove', (e) => {
+            const canvas = document.getElementById('gameCanvas');
+            if (!canvas || document.getElementById('arenaWin').classList.contains('hidden')) return;
+            const rect = canvas.getBoundingClientRect();
+            let mouseX = e.clientX - rect.left;
+            let mouseY = e.clientY - rect.top;
+            let me = roomPlayers[socket.id];
+            if (me) {
+                // Informa o servidor ou atualiza o ângulo localmente se necessário
+            }
+        });
+
         function renderArenaLoop() {
             const canvas = document.getElementById('gameCanvas');
             const ctx = canvas.getContext('2d');
@@ -635,13 +712,27 @@
                 let renderX = Math.round(p.x);
                 let renderY = Math.round(p.y);
 
+                // Efeito visual de rastros do Dash do Moggity
+                if (p.dashTrails && p.dashTrails.length > 0) {
+                    p.dashTrails.forEach(trail => {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(Math.round(trail.x), Math.round(trail.y), p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = p.selectedClass === 'Moggity' ? `rgba(255, 222, 0, ${trail.alpha})` : `rgba(56, 189, 248, ${trail.alpha})`;
+                        ctx.fill();
+                        ctx.restore();
+                    });
+                }
+
+                // Espada
                 let sImg = swordImgs[currentUser?.equippedSword] || swordImgs["Espada Básica"];
                 ctx.save(); ctx.translate(renderX, renderY); ctx.rotate(p.swordAngle);
                 if (sImg && sImg.complete) ctx.drawImage(sImg, p.radius + 2, -16, p.swordLength, 32);
                 ctx.restore();
 
+                // Coração orbitante do Lovity (mais afastado)
                 if (p.selectedClass === 'Lovity') {
-                    let heartDist = p.radius + 35;
+                    let heartDist = p.radius + 60;
                     let hX = renderX + Math.cos(p.lovityAngle) * heartDist;
                     let hY = renderY + Math.sin(p.lovityAngle) * heartDist;
                     ctx.fillStyle = 'rgba(255, 105, 180, 0.4)';
@@ -650,7 +741,8 @@
                     ctx.beginPath(); ctx.arc(hX, hY, 8, 0, Math.PI*2); ctx.fill();
                 }
 
-                ctx.save(); ctx.beginPath(); ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+                // Miolo interno preenchido com a cor exata da classe (sem vazar na lateral)
+                ctx.save(); ctx.beginPath(); ctx.arc(renderX, renderY, p.radius - 2, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
                 if (p.selectedClass === 'Moggity') {
                     ctx.fillStyle = '#ffde00'; ctx.fillRect(renderX - p.radius, renderY - p.radius, p.radius * 2, p.radius * 2);
                     if (manFaceImg.complete) ctx.drawImage(manFaceImg, renderX - p.radius - 4, renderY - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
@@ -666,6 +758,7 @@
                 }
                 ctx.restore();
 
+                // Borda lateral externa limpa (cor do time)
                 ctx.strokeStyle = p.team === 2 ? '#f87171' : '#38bdf8'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); ctx.stroke();
 
