@@ -37,18 +37,26 @@ const CLASSES = {
     "CyberNinja": { cost: 2500 }
 };
 
-// Mapa Livre Gigante com muitas salas, corredores e obstáculos (Tamanho 4000x3000)
+// Mapa Livre Massivo com várias salas, corredores labirínticos e muitos obstáculos
 const FREE_MAP = {
-    name: "Mega Labirinto Livre",
+    name: "Mega Labirinto Livre Gigante",
     width: 4000,
     height: 3000,
     obstacles: [
-        { x: 400, y: 400, w: 600, h: 100 }, { x: 1400, y: 300, w: 150, h: 800 },
-        { x: 2200, y: 500, w: 500, h: 120 }, { x: 3000, y: 400, w: 200, h: 600 },
-        { x: 500, y: 1200, w: 800, h: 150 }, { x: 1600, y: 1400, w: 400, h: 200 },
-        { x: 2400, y: 1300, w: 150, h: 700 }, { x: 3000, y: 1500, w: 600, h: 150 },
-        { x: 300, y: 2000, w: 500, h: 200 }, { x: 1000, y: 2200, w: 800, h: 150 },
-        { x: 2000, y: 2300, w: 300, h: 400 }, { x: 2800, y: 2200, w: 700, h: 180 }
+        { x: 300, y: 300, w: 800, h: 120 },
+        { x: 1400, y: 200, w: 180, h: 900 },
+        { x: 1900, y: 500, w: 700, h: 150 },
+        { x: 2900, y: 300, w: 250, h: 700 },
+        { x: 400, y: 1000, w: 600, h: 200 },
+        { x: 1200, y: 1300, w: 500, h: 250 },
+        { x: 2000, y: 1100, w: 200, h: 800 },
+        { x: 2600, y: 1400, w: 800, h: 180 },
+        { x: 300, y: 1800, w: 700, h: 250 },
+        { x: 1100, y: 2000, w: 900, h: 180 },
+        { x: 2300, y: 2100, w: 350, h: 500 },
+        { x: 3000, y: 1900, w: 700, h: 200 },
+        { x: 600, y: 2500, w: 500, h: 200 },
+        { x: 1500, y: 2400, w: 600, h: 220 }
     ]
 };
 
