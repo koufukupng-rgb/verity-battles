@@ -37,7 +37,6 @@ const CLASSES = {
     "CyberNinja": { cost: 2500 }
 };
 
-// Mapa Livre Gigante (Até 25 pessoas)
 const FREE_MAP = {
     name: "Arena Livre Gigante",
     width: 2000,
@@ -65,7 +64,7 @@ let onlineSockets = {};
 let userActiveSocket = {};
 let matchQueue = { '1v1': [], '2v2': [] };
 let activeRooms = {};
-let freeRoamPlayers = {}; // Jogadores no mapa livre gigante
+let freeRoamPlayers = {};
 
 function resolveCircleRect(p, obs) {
     let closestX = Math.max(obs.x, Math.min(p.x, obs.x + obs.w));
@@ -93,7 +92,6 @@ io.on('connection', (socket) => {
         if (!email) return socket.emit('authError', 'Informe um e-mail válido.');
         if (!isGoogle && (!username || !password)) return socket.emit('authError', 'Preencha Username, E-mail e Senha.');
 
-        // Padrão de foto de perfil do e-mail (usando gravatar ou inicial/default do google)
         const defaultEmailAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${email}`;
 
         if (db.users[email]) {
@@ -121,7 +119,7 @@ io.on('connection', (socket) => {
             email,
             password: isGoogle ? 'GOOGLE_OAUTH' : password,
             username: finalUsername,
-            profilePic: data.googleAvatar || defaultEmailAvatar, // Foto de perfil do e-mail
+            profilePic: data.googleAvatar || defaultEmailAvatar,
             selectedClass: 'Verity',
             unlockedClasses: ['Verity'],
             customAvatar: null,
@@ -194,7 +192,17 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Mapa Livre (Até 25 pessoas)
+    socket.on('changePassword', (data) => {
+        const email = onlineSockets[socket.id];
+        const user = db.users[email];
+        if (!user) return;
+        if (user.password === 'GOOGLE_OAUTH') return socket.emit('settingsFeedback', { ok: false, msg: 'Contas Google não usam senha.' });
+        if (user.password !== data.oldPass) return socket.emit('settingsFeedback', { ok: false, msg: 'Senha atual incorreta.' });
+        user.password = data.newPass;
+        saveDB();
+        socket.emit('settingsFeedback', { ok: true, msg: 'Senha alterada com sucesso!' });
+    });
+
     socket.on('joinFreeRoam', () => {
         const email = onlineSockets[socket.id];
         const u = db.users[email];
@@ -219,7 +227,7 @@ io.on('connection', (socket) => {
         if (p && p.selectedClass === 'Moggity' && p.dashCooldown <= 0) {
             p.x += Math.cos(p.swordAngle) * 90;
             p.y += Math.sin(p.swordAngle) * 90;
-            p.dashCooldown = 45; // cooldown de frames
+            p.dashCooldown = 45;
         }
     });
 
@@ -293,9 +301,7 @@ function tryCreateMatch(mode) {
     io.to(roomId).emit('matchStart', { roomId, mode, map, players: room.players });
 }
 
-// Loop geral de física e mapas livres
 setInterval(() => {
-    // Atualiza Mapa Livre
     for (let id in freeRoamPlayers) {
         let p = freeRoamPlayers[id];
         let vx = 0, vy = 0;
@@ -310,7 +316,6 @@ setInterval(() => {
     }
     io.emit('freeRoamState', freeRoamPlayers);
 
-    // Atualiza Salas de Batalha Ranqueada
     for (let roomId in activeRooms) {
         const room = activeRooms[roomId];
         if (room.state !== 'playing') continue;
