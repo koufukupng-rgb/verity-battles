@@ -2,56 +2,221 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Verity & Moggity Arena</title>
+    <title>Verity & Moggity Battle Arena - Win7 Edition</title>
     <style>
-        body { background: #0d0d0d; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 0; padding: 10px; }
-        h1 { margin: 5px 0; color: #ffcc00; font-size: 24px; }
-        canvas { background: #1a1a1a; border: 4px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.9); display: block; margin: 10px auto; border-radius: 8px; }
-        #ui { margin-top: 10px; background: #222; padding: 10px; border-radius: 8px; display: inline-block; border: 1px solid #444; }
-        button { background: #ffcc00; border: none; padding: 8px 16px; font-weight: bold; cursor: pointer; border-radius: 5px; margin: 4px; color: #111; transition: 0.2s; }
-        button:hover { background: #e6b800; transform: scale(1.05); }
-        .stat-box { font-size: 15px; margin-bottom: 8px; }
+        body {
+            background: #2b579a url('https://i.imgur.com/1Q36X3z.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        /* Estilo Janela Windows 7 Aero Glass */
+        .win7-window {
+            background: rgba(20, 30, 45, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.6);
+            border-radius: 8px;
+            width: 750px;
+            margin: 40px auto;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .win7-titlebar {
+            background: linear-gradient(to bottom, #4a7bc7 0%, #1c4d9b 100%);
+            margin: -20px -20px 15px -20px;
+            padding: 10px 15px;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: left;
+            border-bottom: 1px solid #102a58;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        button, select, input {
+            background: linear-gradient(to bottom, #e1f0ff 0%, #b8d9fb 100%);
+            border: 1px solid #7095be;
+            color: #111;
+            padding: 8px 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        button:hover { background: linear-gradient(to bottom, #fff 0%, #cce5ff 100%); border-color: #3c7fb1; }
+        input { background: #fff; cursor: text; }
+
+        .hidden { display: none !important; }
+
+        canvas {
+            background: #111;
+            border: 3px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 25px rgba(0,0,0,0.9);
+            border-radius: 6px;
+            display: block;
+            margin: 10px auto;
+        }
+
+        .hud-panel {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 15px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <h1>🟡 Verity & Moggity Battle Arena ⚔️</h1>
-    <p>Use <b>W, A, S, D</b> ou <b>Setas</b> para mover. Suas espadas orbitais causam dano ao tocar nos rivais!</p>
-    
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-    <div id="ui">
-        <div class="stat-box">Moedas: 💰 <span id="coins">0</span> | HP: ❤️ <span id="hp">100</span> | Elo: 🏆 <span id="elo">1000</span></div>
-        <div>
-            <button onclick="buyUpgrade('speed')">Velocidade (50 💰)</button>
-            <button onclick="buyUpgrade('damage')">Dano Espada (100 💰)</button>
-            <button onclick="buyUpgrade('heal')">Curar (25 💰)</button>
-            <button onclick="buySword('Lendária', 1000)">Espada Lendária (1000 💰)</button>
+    <!-- TELA 1: LOGIN E PERFIL (ESTILO WIN 7) -->
+    <div id="loginScreen" class="win7-window" style="width: 450px; margin-top: 100px;">
+        <div class="win7-titlebar"><span>🪟 Verity & Moggity - Autenticação</span></div>
+        <h2>Entrar na Arena</h2>
+        <p style="font-size: 13px; color: #ccc;">Conecte com seu e-mail (ou Google ID) para salvar Elo, Moedas e Espadas por IP.</p>
+        <input type="email" id="userEmail" placeholder="seu-email@gmail.com" style="width: 80%;"><br><br>
+        <input type="text" id="userName" placeholder="Seu Apelido" style="width: 80%;"><br><br>
+        <p style="font-size: 13px;">Avatar Personalizado (Upload de Imagem):</p>
+        <input type="file" id="avatarUpload" accept="image/*"><br><br>
+        <button onclick="doLogin()">Entrar no Jogo 🎮</button>
+    </div>
+
+    <!-- TELA 2: LOBBY E LOJA -->
+    <div id="lobbyScreen" class="win7-window hidden">
+        <div class="win7-titlebar">
+            <span id="welcomeTitle">Lobby Principal</span>
+            <span>💰 <span id="lobbyCoins">100</span> | 🏆 Elo: <span id="lobbyElo">1000</span></span>
         </div>
+        
+        <h3>Modos de Jogo & Matchmaking</h3>
+        <button onclick="startMatch('1v1')">Entrar na Fila 1v1 (Pro)</button>
+        <button onclick="startMatch('2v2')">Entrar na Fila 2v2 (Equipe)</button>
+        <div id="queueStatus" style="color: #00ffcc; margin: 10px; font-weight: bold;"></div>
+
+        <hr style="border-color: rgba(255,255,255,0.2);">
+        <h3>Loja de Espadas & Upgrades (Grind)</h3>
+        <div style="font-size: 13px; margin-bottom: 8px;">Espadas Lendárias causam destruição total!</div>
+        <button onclick="buyUpgrade('speed')">Velocidade (150 💰)</button>
+        <button onclick="buyUpgrade('damage')">Dano Extra (300 💰)</button>
+        <button onclick="buyUpgrade('heal')">Recarga de HP (75 💰)</button><br>
+        <button onclick="buySword('Espada de Ouro', 1500)">Comprar Espada de Ouro (1500 💰)</button>
+        <button onclick="buySword('Foice Sombria', 5000)">Comprar Foice Sombria (5000 💰)</button>
+    </div>
+
+    <!-- TELA 3: ARENA DE BATALHA MULTIPLAYER -->
+    <div id="gameScreen" class="win7-window hidden" style="width: 860px;">
+        <div class="win7-titlebar">
+            <span>⚔️ Arena de Batalha em Tempo Real</span>
+            <button onclick="leaveGame()" style="padding: 2px 8px; font-size: 12px;">Desistir / Sair</button>
+        </div>
+        
+        <div class="hud-panel">
+            <span>Moedas: 💰 <span id="gameCoins">0</span></span>
+            <span>HP: ❤️ <span id="gameHp">100</span></span>
+            <span>Elo: 🏆 <span id="gameElo">1000</span></span>
+            <span>Espada: 🗡️ <span id="gameSwordName">Padrão</span></span>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <p style="font-size: 12px; color: #aaa;">Use **W, A, S, D** ou **Setas** para mover. Suas espadas orbitais gigantes giram e destroem rivais automaticamente!</p>
     </div>
 
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        const socket = io('https://verity-battles.onrender.com'); 
+        const socket = io('https://verity-battles.onrender.com');
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Carrega as imagens da mesma pasta
-        const verityImg = new Image();
-        verityImg.src = 'verity.png';
+        const defaultVerityImg = new Image();
+        defaultVerityImg.src = 'verity.png';
 
-        const espadaImg = new Image();
-        espadaImg.src = 'espada.png';
+        const defaultSwordImg = new Image();
+        defaultSwordImg.src = 'espada.png';
 
+        let customAvatarImg = null;
         let myId = null;
         let players = {};
-        let obstacles = [
-            { x: 300, y: 200, w: 200, h: 40 },
-            { x: 150, y: 400, w: 60, h: 120 },
-            { x: 600, y: 350, w: 80, h: 80 }
-        ];
+        let obstacles = [];
+        let myData = {};
         const keys = { up: false, down: false, left: false, right: false };
-        const arenaSize = { width: 800, height: 600 };
+
+        // Tratamento de upload de imagem de perfil do usuário
+        document.getElementById('avatarUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    customAvatarImg = new Image();
+                    customAvatarImg.src = event.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function doLogin() {
+            const email = document.getElementById('userEmail').value;
+            const name = document.getElementById('userName').value;
+            if (!email) {
+                alert('Por favor, informe seu e-mail conectado para jogar!');
+                return;
+            }
+            socket.emit('login', { email, name, avatar: customAvatarImg ? customAvatarImg.src : 'verity.png' });
+        }
+
+        socket.on('loginSuccess', (data) => {
+            myData = data;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('lobbyScreen').classList.remove('hidden');
+            updateLobbyUI();
+        });
+
+        socket.on('init', (data) => {
+            myId = data.id;
+            myData = data.playerData;
+            if(data.obstacles) obstacles = data.obstacles;
+            document.getElementById('lobbyCoins').innerText = myData.coins;
+            document.getElementById('lobbyElo').innerText = myData.elo;
+        });
+
+        socket.on('updateStats', (uData) => {
+            myData = uData;
+            document.getElementById('lobbyCoins').innerText = myData.coins;
+            document.getElementById('lobbyElo').innerText = myData.elo;
+            document.getElementById('gameCoins').innerText = myData.coins;
+            document.getElementById('gameElo').innerText = myData.elo;
+            document.getElementById('gameSwordName').innerText = myData.sword;
+        });
+
+        function startMatch(mode) {
+            socket.emit('joinQueue', mode);
+            document.getElementById('queueStatus').innerText = `Procurando partida (${mode})... Aguarde o oponente ou bot entrar!`;
+        }
+
+        socket.on('matchFound', (mode) => {
+            document.getElementById('lobbyScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            requestAnimationFrame(gameLoop);
+        });
+
+        function leaveGame() {
+            window.location.reload(); // Recarrega e volta para o lobby conforme pedido
+        }
+
+        function buyUpgrade(type) { socket.emit('upgrade', type); }
+        function buySword(name, cost) { socket.emit('buySword', { name, cost }); }
 
         window.addEventListener('keydown', (e) => updateKeys(e, true));
         window.addEventListener('keyup', (e) => updateKeys(e, false));
@@ -63,59 +228,31 @@
             if (['ArrowRight', 'KeyD'].includes(e.code)) keys.right = isPressed;
         }
 
-        socket.on('init', (data) => {
-            myId = data.id;
-            players = data.players;
-            if(data.obstacles) obstacles = data.obstacles;
-        });
-
         socket.on('updatePlayers', (serverPlayers) => {
-            for (let id in serverPlayers) {
-                if (id === myId && players[myId]) {
-                    players[myId].hp = serverPlayers[id].hp;
-                    players[myId].coins = serverPlayers[id].coins;
-                    players[myId].speed = serverPlayers[id].speed;
-                    players[myId].maxHp = serverPlayers[id].maxHp;
-                    players[myId].swordAngle = serverPlayers[id].swordAngle;
-                    players[myId].elo = serverPlayers[id].elo;
-                } else {
-                    players[id] = serverPlayers[id];
-                }
-            }
-
+            players = serverPlayers;
             if (myId && players[myId]) {
-                document.getElementById('coins').innerText = players[myId].coins;
-                document.getElementById('hp').innerText = Math.round(players[myId].hp);
-                document.getElementById('elo').innerText = players[myId].elo || 1000;
+                document.getElementById('gameCoins').innerText = players[myId].coins;
+                document.getElementById('gameHp').innerText = Math.round(players[myId].hp);
+                document.getElementById('gameElo').innerText = players[myId].elo;
+                document.getElementById('gameSwordName').innerText = players[myId].sword;
             }
         });
-
-        function buyUpgrade(type) {
-            socket.emit('upgrade', type);
-        }
-
-        function buySword(name, cost) {
-            socket.emit('buySword', { name, cost });
-        }
 
         function gameLoop() {
             if (myId && players[myId]) {
                 let p = players[myId];
-                let currentSpeed = p.speed || 4;
-
                 let nextX = p.x;
                 let nextY = p.y;
 
-                if (keys.up) nextY -= currentSpeed;
-                if (keys.down) nextY += currentSpeed;
-                if (keys.left) nextX -= currentSpeed;
-                if (keys.right) nextX += currentSpeed;
+                if (keys.up) nextY -= p.speed;
+                if (keys.down) nextY += p.speed;
+                if (keys.left) nextX -= p.speed;
+                if (keys.right) nextX += p.speed;
 
-                // Limites da arena
-                nextX = Math.max(p.radius, Math.min(arenaSize.width - p.radius, nextX));
-                nextY = Math.max(p.radius, Math.min(arenaSize.height - p.radius, nextY));
+                nextX = Math.max(p.radius, Math.min(800 - p.radius, nextX));
+                nextY = Math.max(p.radius, Math.min(600 - p.radius, nextY));
 
-                // Checagem básica de colisão local com barreiras/obstáculos
+                // Colisão com barreiras
                 let collided = false;
                 for (let obs of obstacles) {
                     if (nextX + p.radius > obs.x && nextX - p.radius < obs.x + obs.w &&
@@ -124,7 +261,6 @@
                         break;
                     }
                 }
-
                 if (!collided) {
                     p.x = nextX;
                     p.y = nextY;
@@ -133,15 +269,17 @@
                 socket.emit('move', keys);
             }
 
-            draw();
-            requestAnimationFrame(gameLoop);
+            drawArena();
+            if(!document.getElementById('gameScreen').classList.contains('hidden')) {
+                requestAnimationFrame(gameLoop);
+            }
         }
 
-        function draw() {
+        function drawArena() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Desenha Grid
-            ctx.strokeStyle = '#222';
+            // Grid Win7
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += 40) {
                 ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
@@ -150,69 +288,75 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
-            // Desenha Barreiras / Obstáculos na Arena
-            ctx.fillStyle = '#444';
-            ctx.strokeStyle = '#666';
+            // Barreiras
+            ctx.fillStyle = '#3a4a5b';
+            ctx.strokeStyle = '#6885a5';
             ctx.lineWidth = 2;
             for (let obs of obstacles) {
                 ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
                 ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
             }
 
-            // Desenha Jogadores e Espadas Orbitais
+            // Jogadores e Espadas Orbitais Gigantes
             for (let id in players) {
                 let p = players[id];
 
                 ctx.save();
                 ctx.translate(p.x, p.y);
 
-                // Desenha o Verity/Moggity
+                // Avatar circular do Verity
                 ctx.beginPath();
                 ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
                 ctx.closePath();
                 ctx.clip();
 
-                if (verityImg.complete) {
-                    ctx.drawImage(verityImg, -p.radius, -p.radius, p.radius * 2, p.radius * 2);
+                if (defaultVerityImg.complete) {
+                    ctx.drawImage(defaultVerityImg, -p.radius, -p.radius, p.radius * 2, p.radius * 2);
                 } else {
-                    ctx.fillStyle = p.color;
+                    ctx.fillStyle = '#ffcc00';
                     ctx.fill();
                 }
                 ctx.restore();
 
-                // Borda do Jogador
-                ctx.strokeStyle = (id === myId) ? '#00ffcc' : '#fff';
+                // Borda do jogador
+                ctx.strokeStyle = (id === myId) ? '#00ffcc' : '#ffffff';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // Desenha a Espada Girando em volta (Órbita)
+                // Nome acima
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px Segoe UI';
+                ctx.fillText(p.name, p.x, p.y - p.radius - 18);
+
+                // ESPADA ORBITAL RETA, ROTAÇÃO CORRETA E TAMANHO GRANDE
                 let angle = p.swordAngle || 0;
-                let orbitRadius = p.radius + 25;
+                let orbitRadius = p.radius + 38;
                 let swordX = p.x + Math.cos(angle) * orbitRadius;
                 let swordY = p.y + Math.sin(angle) * orbitRadius;
 
                 ctx.save();
                 ctx.translate(swordX, swordY);
-                ctx.rotate(angle + Math.PI / 4);
-                if (espadaImg.complete) {
-                    ctx.drawImage(espadaImg, -15, -15, 30, 30);
+                // Alinha perfeitamente a ponta da espada para fora do círculo em rotação contínua
+                ctx.rotate(angle + Math.PI / 2);
+                
+                if (defaultSwordImg.complete) {
+                    // Tamanho maior e mais aparente (48x48 pixels)
+                    ctx.drawImage(defaultSwordImg, -24, -48, 48, 48);
                 } else {
                     ctx.fillStyle = '#ff3333';
-                    ctx.fillRect(-10, -5, 20, 10);
+                    ctx.fillRect(-6, -30, 12, 36);
                 }
                 ctx.restore();
 
-                // Barra de Vida
+                // Barra de HP
                 ctx.fillStyle = 'red';
-                ctx.fillRect(p.x - 20, p.y - p.radius - 12, 40, 6);
+                ctx.fillRect(p.x - 22, p.y - p.radius - 12, 44, 6);
                 ctx.fillStyle = 'lime';
-                ctx.fillRect(p.x - 20, p.y - p.radius - 12, Math.max(0, (p.hp / p.maxHp) * 40), 6);
+                ctx.fillRect(p.x - 22, p.y - p.radius - 12, Math.max(0, (p.hp / p.maxHp) * 44), 6);
             }
         }
-
-        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>
