@@ -94,7 +94,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.35); margin: 10px 0; overflow: hidden;
             display: flex; align-items: center; justify-content: center; background-color: transparent;
         }
-        .avatar-circle-wrap.moggity-bg { background-color: #ffde00; }
+        .avatar-circle-wrap.moggity-bg { background-color: #ffde00 !important; }
         .avatar-circle-wrap img { width: 100%; height: 100%; object-fit: cover; }
 
         .shop-sidebar {
@@ -274,7 +274,7 @@
     <div class="win7-taskbar">
         <div style="display: flex; align-items: center; gap: 12px;">
             <div class="start-orb" title="Verity OS 7">❖</div>
-            <span>Verity Battles Competitive v2.8</span>
+            <span>Verity Battles Competitive v2.10</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <button class="win7-btn" style="padding: 2px 8px; font-size: 11px;" onclick="toggleTheme()">🌓 Tema</button>
@@ -296,9 +296,9 @@
         ];
 
         const CLASS_CATALOG = [
-            { name: "Verity", desc: "Clássico padrão amarelo", cost: 0 },
+            { name: "Verity", desc: "Clássico padrão", cost: 0 },
             { name: "Moggity", desc: "Man Face com Dash na [Espaço]", cost: 1000 },
-            { name: "CyberNinja", desc: "Guerreiro futurista letal", cost: 2500 }
+            { name: "CyberNinja", desc: "Guerreiro letal", cost: 2500 }
         ];
 
         const I18N = {
@@ -424,10 +424,13 @@
 
             const wrap = document.getElementById('avatarCircleWrap');
             const imgEl = document.getElementById('lobbyAvatarImg');
+            
             if (currentUser.selectedClass === 'Moggity') {
-                wrap.classList.add('moggity-bg'); imgEl.src = 'man.png';
+                wrap.classList.add('moggity-bg');
+                imgEl.src = 'man.png';
             } else {
-                wrap.classList.remove('moggity-bg'); imgEl.src = 'verity.png';
+                wrap.classList.remove('moggity-bg');
+                imgEl.src = 'verity.png';
             }
 
             document.getElementById('lblSpdLvl').innerText = currentUser.speedLvl;
@@ -587,32 +590,50 @@
             }
             ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
 
-            // Renderiza os jogadores
+            // Renderiza os jogadores com arredondamento de pixels para evitar flicker na diagonal
             for (let id in roomPlayers) {
                 const p = roomPlayers[id];
                 if (p.hp <= 0) continue;
 
+                let renderX = Math.round(p.x);
+                let renderY = Math.round(p.y);
+
                 let sImg = swordImgs[currentUser?.equippedSword] || swordImgs["Espada Básica"];
-                ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.swordAngle);
+                ctx.save(); 
+                ctx.translate(renderX, renderY); 
+                ctx.rotate(p.swordAngle);
                 if (sImg && sImg.complete) ctx.drawImage(sImg, p.radius + 2, -16, p.swordLength, 32);
                 ctx.restore();
 
-                ctx.save(); ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+                ctx.save(); 
+                ctx.beginPath(); 
+                ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); 
+                ctx.closePath(); 
+                ctx.clip();
+
                 if (p.selectedClass === 'Moggity') {
-                    ctx.fillStyle = '#ffde00'; ctx.fillRect(p.x - p.radius, p.y - p.radius, p.radius * 2, p.radius * 2);
-                    if (manFaceImg.complete) ctx.drawImage(manFaceImg, p.x - p.radius - 4, p.y - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
+                    ctx.fillStyle = '#ffde00'; 
+                    ctx.fillRect(renderX - p.radius, renderY - p.radius, p.radius * 2, p.radius * 2);
+                    if (manFaceImg.complete) ctx.drawImage(manFaceImg, renderX - p.radius - 4, renderY - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
                 } else {
-                    if (verityImg.complete) ctx.drawImage(verityImg, p.x - p.radius - 4, p.y - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
+                    if (verityImg.complete) ctx.drawImage(verityImg, renderX - p.radius - 4, renderY - p.radius - 4, (p.radius * 2) + 8, (p.radius * 2) + 8);
                 }
                 ctx.restore();
 
-                ctx.strokeStyle = p.team === 2 ? '#f87171' : '#38bdf8'; ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.stroke();
+                ctx.strokeStyle = p.team === 2 ? '#f87171' : '#38bdf8'; 
+                ctx.lineWidth = 3;
+                ctx.beginPath(); 
+                ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); 
+                ctx.stroke();
 
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 13px Segoe UI'; ctx.textAlign = 'center';
-                ctx.fillText(p.username, p.x, p.y - p.radius - 16);
-                ctx.fillStyle = '#222'; ctx.fillRect(p.x - 24, p.y - p.radius - 11, 48, 6);
-                ctx.fillStyle = '#22c55e'; ctx.fillRect(p.x - 24, p.y - p.radius - 11, Math.max(0, (p.hp / p.maxHp) * 48), 6);
+                ctx.fillStyle = '#fff'; 
+                ctx.font = 'bold 13px Segoe UI'; 
+                ctx.textAlign = 'center';
+                ctx.fillText(p.username, renderX, renderY - p.radius - 16);
+                ctx.fillStyle = '#222'; 
+                ctx.fillRect(renderX - 24, renderY - p.radius - 11, 48, 6);
+                ctx.fillStyle = '#22c55e'; 
+                ctx.fillRect(renderX - 24, renderY - p.radius - 11, Math.max(0, (p.hp / p.maxHp) * 48), 6);
             }
 
             ctx.restore();
