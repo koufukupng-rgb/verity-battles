@@ -24,18 +24,17 @@
         <button onclick="buyUpgrade('heal')">Curar Vida (5 💰)</button>
     </div>
 
-    <!-- Script do Socket.io fornecido pelo servidor -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // Mude para o link do seu backend no Render quando publicar (ex: https://seu-app.onrender.com)
+        // Lembre-se de alterar para o link do Render quando for testar online
         const socket = io('http://localhost:3000'); 
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Carrega a imagem Verity da pasta assets
+        // Carrega a imagem verity.png diretamente da mesma pasta
         const verityImg = new Image();
-        verityImg.src = 'assets/verity.png';
+        verityImg.src = 'verity.png';
 
         let myId = null;
         let players = {};
@@ -68,16 +67,13 @@
             socket.emit('upgrade', type);
         }
 
-        // Loop de envio de comandos para o servidor
         setInterval(() => {
             socket.emit('move', keys);
         }, 1000 / 60);
 
-        // Loop de renderização gráfica
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Desenha grade de fundo da arena
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += 40) {
@@ -87,14 +83,12 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
-            // Desenha cada Verity
             for (let id in players) {
                 let p = players[id];
 
                 ctx.save();
                 ctx.translate(p.x, p.y);
 
-                // Desenha a imagem Verity arredondada com a textura enviada
                 ctx.beginPath();
                 ctx.arc(0, 0, p.radius, 0, Math.PI * 2);
                 ctx.closePath();
@@ -108,14 +102,12 @@
                 }
                 ctx.restore();
 
-                // Borda e Barra de HP acima do Verity
                 ctx.strokeStyle = (id === myId) ? '#00ffcc' : '#fff';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // Barra de vida
                 ctx.fillStyle = 'red';
                 ctx.fillRect(p.x - 20, p.y - p.radius - 12, 40, 6);
                 ctx.fillStyle = 'lime';
