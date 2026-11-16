@@ -32,12 +32,22 @@ const SWORDS = {
 };
 
 const CLASSES = {
-    "Verity": { cost: 0 },
-    "Moggity": { cost: 1000 },
-    "CyberNinja": { cost: 2500 }
+    "Verity": { cost: 0, currency: 'coins' },
+    "Moggity": { cost: 1000, currency: 'coins' },
+    "Lovity": { cost: 1800, currency: 'coins', speedMult: 1.55 },
+    "Falsity": { cost: 150, currency: 'verityCoins' },
+    "CyberNinja": { cost: 2500, currency: 'coins' }
 };
 
-// Mapa Livre Massivo com várias salas, corredores labirínticos e muitos obstáculos
+const MENU_STYLES = {
+    "Windows 7": { rarity: "Padrão" },
+    "Windows XP": { rarity: "Lendário Raro (0.1%)" },
+    "Windows 10": { rarity: "Épico (1%)" },
+    "Windows 11": { rarity: "Raro (5%)" },
+    "Hacker": { rarity: "Incomum (10%)" },
+    "Neo Cyber": { rarity: "Raro (7%)" }
+};
+
 const FREE_MAP = {
     name: "Mega Labirinto Livre Gigante",
     width: 4000,
@@ -132,13 +142,16 @@ io.on('connection', (socket) => {
             profilePic: data.googleAvatar || defaultEmailAvatar,
             selectedClass: 'Verity',
             unlockedClasses: ['Verity'],
-            customAvatar: null,
-            coins: 200,
-            elo: 1000,
-            wins: 0, losses: 0,
-            speedLvl: 1, hpLvl: 1,
             equippedSword: "Espada Básica",
-            unlockedSwords: ["Espada Básica"]
+            unlockedSwords: ["Espada Básica"],
+            equippedMenuStyle: "Windows 7",
+            unlockedMenuStyles: ["Windows 7"],
+            coins: 400,
+            verityCoins: 10, // Moeda paga com imagem do Verity
+            level: 1,
+            xp: 0,
+            wins: 0, losses: 0,
+            speedLvl: 1, hpLvl: 1
         };
 
         db.users[email] = newUser;
@@ -160,18 +173,55 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('selectSword', (swordName) => {
+        const email = onlineSockets[socket.id];
+        const user = db.users[email];
+        if (user && user.unlockedSwords && user.unlockedSwords.includes(swordName)) {
+            user.equippedSword = swordName;
+            saveDB();
+            socket.emit('userUpdated', user);
+        }
+    });
+
+    socket.on('selectMenuStyle', (styleName) => {
+        const email = onlineSockets[socket.id];
+        const user = db.users[email];
+        if (user && user.unlockedMenuStyles && user.unlockedMenuStyles.includes(styleName)) {
+            user.equippedMenuStyle = styleName;
+            saveDB();
+            socket.emit('userUpdated', user);
+        }
+    });
+
     socket.on('buyClass', (clsName) => {
         const email = onlineSockets[socket.id];
         const user = db.users[email];
         const clsInfo = CLASSES[clsName];
         if (!user || !clsInfo) return;
         if (!user.unlockedClasses) user.unlockedClasses = ['Verity'];
-        if (!user.unlockedClasses.includes(clsName) && user.coins >= clsInfo.cost) {
-            user.coins -= clsInfo.cost;
-            user.unlockedClasses.push(clsName);
-            user.selectedClass = clsName;
-            saveDB();
-            socket.emit('userUpdated', user);
+        
+        if (!user.unlockedClasses.includes(clsName)) {
+            if (clsInfo.currency === 'verityCoins') {
+                if (user.verityCoins >= clsInfo.cost) {
+                    user.verityCoins -= clsInfo.cost;
+                    user.unlockedClasses.push(clsName);
+                    user.selectedClass = clsName;
+                    saveDB();
+                    socket.emit('userUpdated', user);
+                } else {
+                    socket.emit('shopError', 'Verity Coins insuficientes! Adquira mais na aba de Verity Coins.');
+                }
+            } else {
+                if (user.coins >= clsInfo.cost) {
+                    user.coins -= clsInfo.cost;
+                    user.unlockedClasses.push(clsName);
+                    user.selectedClass = clsName;
+                    saveDB();
+                    socket.emit('userUpdated', user);
+                } else {
+                    socket.emit('shopError', 'Moedas insuficientes!');
+                }
+            }
         }
     });
 
@@ -202,15 +252,43 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('changePassword', (data) => {
+    // Caixa de Temas com probabilidades exatas
+    socket.on('openThemeBox', () => {
         const email = onlineSockets[socket.id];
         const user = db.users[email];
-        if (!user) return;
-        if (user.password === 'GOOGLE_OAUTH') return socket.emit('settingsFeedback', { ok: false, msg: 'Contas Google não usam senha.' });
-        if (user.password !== data.oldPass) return socket.emit('settingsFeedback', { ok: false, msg: 'Senha atual incorreta.' });
-        user.password = data.newPass;
+        if (!user || user.coins < 200) return socket.emit('boxError', 'Você precisa de 200 moedas para abrir a Caixa de Temas!');
+
+        user.coins -= 200;
+
+        const rollPool = [
+            { name: "Windows XP", chance: 0.001, type: 'menu' },
+            { name: "Windows 10", chance: 0.01, type: 'menu' },
+            { name: "Windows 11", chance: 0.05, type: 'menu' },
+            { name: "Neo Cyber", chance: 0.07, type: 'menu' },
+            { name: "Hacker", chance: 0.10, type: 'menu' },
+            { name: "Windows 7", chance: 0.769, type: 'menu' }
+        ];
+
+        let rand = Math.random();
+        let cumulative = 0;
+        let selectedTheme = "Windows 7";
+
+        for (let item of rollPool) {
+            cumulative += item.chance;
+            if (rand <= cumulative) {
+                selectedTheme = item.name;
+                break;
+            }
+        }
+
+        if (!user.unlockedMenuStyles.includes(selectedTheme)) {
+            user.unlockedMenuStyles.push(selectedTheme);
+        } else {
+            user.coins += 100; // Recompensa em dobro se já tiver
+        }
+
         saveDB();
-        socket.emit('settingsFeedback', { ok: true, msg: 'Senha alterada com sucesso!' });
+        socket.emit('themeBoxOpened', { prize: selectedTheme, user });
     });
 
     socket.on('joinFreeRoam', () => {
@@ -218,12 +296,14 @@ io.on('connection', (socket) => {
         const u = db.users[email];
         if (!u || Object.keys(freeRoamPlayers).length >= 25) return;
         const sword = SWORDS[u.equippedSword] || SWORDS["Espada Básica"];
+        let baseSpeed = u.selectedClass === 'Lovity' ? 5.0 * 1.55 : 5.0;
 
         freeRoamPlayers[socket.id] = {
             socketId: socket.id, username: u.username, profilePic: u.profilePic,
             selectedClass: u.selectedClass, x: Math.random() * 3600 + 200, y: Math.random() * 2600 + 200,
-            radius: 34, hp: 100, maxHp: 100, speed: 5.0, swordSpeed: 0.1, swordLength: sword.length,
-            swordAngle: 0, keys: { up: false, down: false, left: false, right: false }, dashCooldown: 0
+            radius: 34, hp: 100, maxHp: 100, speed: baseSpeed, swordSpeed: 0.1, swordLength: sword.length,
+            swordAngle: 0, keys: { up: false, down: false, left: false, right: false }, dashCooldown: 0,
+            lovityAngle: 0
         };
         socket.emit('freeRoamStart', { map: FREE_MAP, players: freeRoamPlayers });
     });
@@ -296,14 +376,16 @@ function tryCreateMatch(mode) {
         const u = db.users[email];
         const team = (idx % 2 === 0) ? 1 : 2;
         const sword = SWORDS[u.equippedSword] || SWORDS["Espada Básica"];
+        let baseSpeed = u.selectedClass === 'Lovity' ? 4.5 * 1.55 : 4.5;
 
         room.players[sockId] = {
             socketId: sockId, email: u.email, username: u.username, profilePic: u.profilePic,
-            selectedClass: u.selectedClass || 'Verity', elo: u.elo, team,
+            selectedClass: u.selectedClass || 'Verity', team,
             x: team === 1 ? 80 : map.width - 80, y: (map.height / (needed / 2 + 1)) * (Math.floor(idx / 2) + 1),
-            radius: 34, hp: 100, maxHp: 100, speed: 4.5, swordDamage: sword.damage,
+            radius: 34, hp: 100, maxHp: 100, speed: baseSpeed, swordDamage: sword.damage,
             swordLength: sword.length, swordSpeed: 0.1, swordAngle: team === 1 ? 0 : Math.PI,
-            hitCooldown: 0, dashCooldown: 0, keys: { up: false, down: false, left: false, right: false }
+            hitCooldown: 0, dashCooldown: 0, keys: { up: false, down: false, left: false, right: false },
+            lovityAngle: 0
         };
         io.sockets.sockets.get(sockId)?.join(roomId);
     });
@@ -322,6 +404,7 @@ setInterval(() => {
         p.y = Math.max(p.radius, Math.min(FREE_MAP.height - p.radius, p.y + vy * p.speed));
         for (let obs of FREE_MAP.obstacles) resolveCircleRect(p, obs);
         p.swordAngle = (p.swordAngle + p.swordSpeed) % (Math.PI * 2);
+        if (p.selectedClass === 'Lovity') p.lovityAngle = (p.lovityAngle + 0.08) % (Math.PI * 2);
         if (p.dashCooldown > 0) p.dashCooldown--;
     }
     io.emit('freeRoamState', freeRoamPlayers);
@@ -341,21 +424,35 @@ setInterval(() => {
             p.y = Math.max(p.radius, Math.min(room.map.height - p.radius, p.y + vy * p.speed));
             for (let obs of room.map.obstacles) resolveCircleRect(p, obs);
             p.swordAngle = (p.swordAngle + p.swordSpeed) % (Math.PI * 2);
+            if (p.selectedClass === 'Lovity') p.lovityAngle = (p.lovityAngle + 0.08) % (Math.PI * 2);
             if (p.hitCooldown > 0) p.hitCooldown--;
             if (p.dashCooldown > 0) p.dashCooldown--;
         }
 
+        // Dano de combate (espadas e coração do Lovity)
         for (let i = 0; i < pList.length; i++) {
             for (let j = 0; j < pList.length; j++) {
                 if (i === j) continue;
                 let a = pList[i], b = pList[j];
                 if (a.hp <= 0 || b.hp <= 0 || a.team === b.team) continue;
+                
+                // Dano da espada
                 let tipDist = a.radius + a.swordLength;
                 let tipX = a.x + Math.cos(a.swordAngle) * tipDist;
                 let tipY = a.y + Math.sin(a.swordAngle) * tipDist;
                 if (Math.hypot(tipX - b.x, tipY - b.y) < b.radius && a.hitCooldown <= 0) {
                     b.hp = Math.max(0, b.hp - a.swordDamage);
                     a.hitCooldown = 15;
+                }
+
+                // Dano do Coração orbitante do Lovity
+                if (a.selectedClass === 'Lovity') {
+                    let heartDist = a.radius + 35;
+                    let hX = a.x + Math.cos(a.lovityAngle) * heartDist;
+                    let hY = a.y + Math.sin(a.lovityAngle) * heartDist;
+                    if (Math.hypot(hX - b.x, hY - b.y) < b.radius + 10 && a.hitCooldown <= 0) {
+                        b.hp = Math.max(0, b.hp - 6); // Dano leve contínuo
+                    }
                 }
             }
         }
@@ -368,8 +465,22 @@ setInterval(() => {
             const winners = pList.filter(p => p.team === winningTeam);
             const losers = pList.filter(p => p.team !== winningTeam);
 
-            winners.forEach(w => { let u = db.users[w.email]; if(u){u.elo+=25; u.coins+=120; u.wins++;} });
-            losers.forEach(l => { let u = db.users[l.email]; if(u){u.elo=Math.max(100,u.elo-25); u.losses++;} });
+            winners.forEach(w => {
+                let u = db.users[w.email];
+                if(u) {
+                    u.coins += 120; u.wins++;
+                    u.xp += 150;
+                    if (u.xp >= u.level * 300) { u.xp -= u.level * 300; u.level++; }
+                }
+            });
+            losers.forEach(l => {
+                let u = db.users[l.email];
+                if(u) {
+                    u.losses++;
+                    u.xp += 50;
+                    if (u.xp >= u.level * 300) { u.xp -= u.level * 300; u.level++; }
+                }
+            });
             saveDB();
 
             pList.forEach(p => {
@@ -377,7 +488,7 @@ setInterval(() => {
                 io.to(p.socketId).emit('matchEnd', {
                     won, username: p.username, profilePic: p.profilePic,
                     opponentNames: (won ? losers : winners).map(o => o.username).join(', '),
-                    eloDelta: won ? 25 : -25, coinsEarned: won ? 120 : 0, user: db.users[p.email]
+                    xpEarned: won ? 150 : 50, coinsEarned: won ? 120 : 0, user: db.users[p.email]
                 });
             });
             delete activeRooms[roomId];
