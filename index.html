@@ -16,7 +16,6 @@
             --card-border: #b8c9dc;
         }
 
-        /* TEMA WINDOWS XP (Fiéis ao original) */
         body.theme-windows-xp {
             --win-glass: #0055ea;
             --win-glass-inner: #ece9d8;
@@ -30,7 +29,6 @@
         body.theme-windows-xp .aero-titlebar { background: linear-gradient(to right, #0055ea, #2a88ff); border-radius: 6px 6px 0 0; }
         body.theme-windows-xp .win7-btn { background: linear-gradient(to bottom, #fff, #ece9d8); border: 1px solid #7f9db9; border-radius: 3px; font-family: Tahoma, sans-serif; }
 
-        /* TEMA WINDOWS 10 */
         body.theme-windows-10 {
             --win-glass: #1f1f1f;
             --win-glass-inner: #2b2b2b;
@@ -41,7 +39,6 @@
             --card-border: #555555;
         }
 
-        /* TEMA WINDOWS 11 */
         body.theme-windows-11 {
             --win-glass: rgba(32, 32, 32, 0.85);
             --win-glass-inner: rgba(45, 45, 45, 0.9);
@@ -52,7 +49,6 @@
             --card-border: rgba(255, 255, 255, 0.2);
         }
 
-        /* TEMA HACKER (Matrix com letras verdes descendo) */
         body.theme-hacker {
             --win-glass: rgba(0, 20, 0, 0.92);
             --win-glass-inner: rgba(0, 10, 0, 0.96);
@@ -65,7 +61,6 @@
         #matrixCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; display: none; }
         body.theme-hacker #matrixCanvas { display: block; }
 
-        /* TEMA NEO CYBER */
         body.theme-neo-cyber {
             --win-glass: rgba(0, 15, 35, 0.9);
             --win-glass-inner: rgba(5, 25, 50, 0.95);
@@ -99,7 +94,6 @@
         .center-avatar-box { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 6px; padding: 12px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; max-height: 460px; }
         .avatar-circle-wrap { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #3c7fb1; box-shadow: 0 4px 15px rgba(0,0,0,0.35); margin: 6px 0; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
         
-        /* Preenchimento de aro correto para Veritys */
         .avatar-circle-wrap.moggity-bg { background-color: #ffde00 !important; }
         .avatar-circle-wrap.lovity-bg { background-color: #ff69b4 !important; }
         .avatar-circle-wrap.falsity-bg { background-color: #1e90ff !important; }
@@ -123,6 +117,20 @@
 </head>
 <body class="theme-windows-7">
     <canvas id="matrixCanvas"></canvas>
+
+    <!-- PAINEL DO MODO DEV (Exibido visualmente apenas para koufukupng@gmail.com) -->
+    <div id="devMenuPanel" class="aero-window hidden" style="position: fixed; top: 10px; right: 10px; z-index: 10000; width: 220px; background: rgba(20, 0, 0, 0.9); border: 2px solid #e74c3c;">
+        <div class="aero-titlebar" style="background: linear-gradient(to right, #c0392b, #e74c3c);">
+            <span>🛠️ Painel Dev</span>
+            <div class="aero-controls"><div class="aero-ctrl-btn" onclick="toggleDevPanel()">_</div></div>
+        </div>
+        <div class="aero-body" style="padding: 6px; display: flex; flex-direction: column; gap: 5px;">
+            <button class="win7-btn" style="background: #e74c3c; color: #fff; font-weight: bold;" onclick="socket.emit('devUnlockEverything')">🔓 Liberar Tudo</button>
+            <button class="win7-btn" onclick="socket.emit('devAddCoins', 5000)">💰 +5.000 Moedas</button>
+            <button class="win7-btn" onclick="socket.emit('devAddVerityCoins', 100)">🪙 +100 V-Coins</button>
+            <button class="win7-btn" onclick="openThemeBoxModal()">🎁 Abrir Caixa Temas</button>
+        </div>
+    </div>
 
     <!-- LOGIN -->
     <div id="loginWin" class="aero-window" style="width: 380px;">
@@ -170,15 +178,15 @@
                     <div id="invContentMenus" class="hidden"></div>
                 </div>
 
-                <!-- CENTRO (AVATAR, NÍVEL E MATCHMAKING APRIMORADO) -->
+                <!-- CENTRO (AVATAR, NÍVEL E MATCHMAKING) -->
                 <div class="center-avatar-box">
                     <div style="width: 100%; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 4px;">
                         <span>👤 <span id="lblUser">Player</span></span>
                         <span>⭐ Nv. <span id="lblLevel">1</span></span>
                     </div>
                     <div style="width: 100%; display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; margin-bottom: 6px;">
-                        <span title="Moedas Grátis">💰 <span id="lblCoins">400</span></span>
-                        <span title="Verity Coins (Paga)"><img src="verity.png" style="width:14px; height:14px; vertical-align:middle;"> <span id="lblVerityCoins" style="color:#e74c3c;">10</span></span>
+                        <span>💰 <span id="lblCoins">400</span></span>
+                        <span><img src="verity.png" style="width:13px; height:13px; vertical-align:middle;"> <span id="lblVerityCoins" style="color:#e74c3c;">10</span></span>
                     </div>
                     
                     <div style="width: 100%; background: rgba(0,0,0,0.1); border-radius: 3px; height: 6px; margin-bottom: 8px; overflow: hidden;">
@@ -188,7 +196,6 @@
                     <div id="avatarCircleWrap" class="avatar-circle-wrap"><img id="lobbyAvatarImg" src="verity.png" alt="Personagem"></div>
                     <div style="font-size: 11px; margin-bottom: 8px;">Classe: <strong id="lblClass">Verity</strong></div>
                     
-                    <!-- Botões de Matchmaking Melhorados -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; margin-bottom: 6px;">
                         <button class="win7-btn primary" style="font-size:11px; padding:6px; font-weight:bold;" onclick="joinQueue('1v1')">⚔️ Duelo 1v1</button>
                         <button class="win7-btn primary" style="font-size:11px; padding:6px; font-weight:bold;" onclick="joinQueue('2v2')">🛡️ Equipe 2v2</button>
@@ -199,7 +206,7 @@
                     <div id="queueBox" class="hidden" style="margin-top: 6px; font-size: 11px; color: #1979ca; font-weight: bold;">⏳ Buscando partida... <button class="win7-btn" style="padding:1px 4px;" onclick="cancelQueue()">X</button></div>
                 </div>
 
-                <!-- LOJA (DIREITA) COM ABA DE VERITY COINS PAGA E TUDO MAIS -->
+                <!-- LOJA (DIREITA) -->
                 <div class="lobby-panel">
                     <h4 style="margin: 0 0 8px 0; font-size: 12px; border-bottom: 1px solid var(--card-border); padding-bottom: 4px;">🛒 Loja & Pagamentos</h4>
                     <div class="shop-tabs">
@@ -212,13 +219,13 @@
                     <div id="shopTabCoins" class="hidden" style="text-align: center; padding: 10px;">
                         <img src="verity.png" style="width: 40px; height: 40px; border-radius:50%; border:2px solid #e74c3c;">
                         <p style="font-size: 11px; margin: 6px 0;">Compre Falsity e itens exclusivos com Verity Coins!</p>
-                        <button class="win7-btn primary" style="background: #e74c3c; color: #fff; width: 100%; font-weight:bold;" onclick="alert('Integração com Stripe em breve! Fique ligado para o lançamento dos pagamentos oficiais.')">💳 Comprar via Stripe (Em breve)</button>
+                        <button class="win7-btn primary" style="background: #e74c3c; color: #fff; width: 100%; font-weight:bold;" onclick="alert('Integração com Stripe em breve!')">💳 Comprar via Stripe (Em breve)</button>
                     </div>
                 </div>
 
             </div>
 
-            <!-- MISSÕES DIÁRIAS (EMBAIXO) -->
+            <!-- MISSÕES DIÁRIAS -->
             <div class="missions-bar">
                 <div>📋 <strong>Missões Diárias:</strong> Jogue no Labirinto (0/1) | Vença um duelo 1v1 (0/1)</div>
                 <div style="color: #27ae60; font-weight: bold;">Recompensa: +100 💰</div>
@@ -227,17 +234,17 @@
         </div>
     </div>
 
-    <!-- MODAL DA CAIXA DE TEMAS -->
+    <!-- MODAL CAIXA DE TEMAS -->
     <div id="themeBoxModal" class="aero-window hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 997; width: 380px;">
         <div class="aero-titlebar"><span>🎁 Caixa de Temas de Menu</span><div class="aero-controls"><div class="aero-ctrl-btn close" onclick="closeThemeBoxModal()">✕</div></div></div>
         <div class="aero-body" style="text-align: center;">
-            <p style="font-size: 12px; margin-top:0;">Abra para tentar conseguir temas raros de Windows (XP com 0.1%, Win 10, Win 11, Hacker e Neo Cyber)!</p>
+            <p style="font-size: 12px; margin-top:0;">Tente conseguir temas raros de Windows (XP, Win 10, Win 11, Hacker e Neo Cyber)!</p>
             <div id="themeBoxRes" style="font-size: 14px; font-weight: bold; margin: 15px 0; min-height: 25px; color: #f1c40f;"></div>
             <button id="spinThemeBtn" class="win7-btn primary" style="width: 100%; font-weight: bold;" onclick="openThemeBox()">Abrir Caixa (200 💰)</button>
         </div>
     </div>
 
-    <!-- MODAL DE CONFIGURAÇÕES -->
+    <!-- CONFIGURAÇÕES -->
     <div id="settingsModal" class="aero-window hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 380px; z-index: 998;">
         <div class="aero-titlebar"><span>⚙️ Configurações</span><div class="aero-controls"><div class="aero-ctrl-btn close" onclick="closeSettings()">✕</div></div></div>
         <div class="aero-body">
@@ -254,7 +261,7 @@
         <div class="aero-body" style="padding: 8px;"><canvas id="gameCanvas" width="950" height="680"></canvas></div>
     </div>
 
-    <!-- RESULTADO DA PARTIDA -->
+    <!-- FIM DE PARTIDA -->
     <div id="resultModal" class="aero-window hidden" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 380px; z-index: 999;">
         <div class="aero-titlebar"><span>🏆 Fim de Partida</span></div>
         <div class="aero-body" style="text-align: center;">
@@ -273,7 +280,7 @@
     </div>
 
     <div class="win7-taskbar">
-        <div style="display: flex; align-items: center; gap: 12px;"><div class="start-orb">❖</div><span>Verity Battles v3.1</span></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><div class="start-orb">❖</div><span>Verity Battles v3.2</span></div>
         <span id="winClock">16:50</span>
     </div>
 
@@ -315,7 +322,7 @@
 
         setInterval(() => { document.getElementById('winClock').innerText = new Date().toTimeString().slice(0, 5); }, 1000);
 
-        // Animação de Letras Descendo (Matrix para o tema Hacker)
+        // Matrix chuva de letras
         const mCanvas = document.getElementById('matrixCanvas');
         const mCtx = mCanvas.getContext('2d');
         function resizeMatrix() { mCanvas.width = window.innerWidth; mCanvas.height = window.innerHeight; }
@@ -351,6 +358,11 @@
             else if (styleName === 'Hacker') document.body.classList.add('theme-hacker');
             else if (styleName === 'Neo Cyber') document.body.classList.add('theme-neo-cyber');
             else document.body.classList.add('theme-windows-7');
+        }
+
+        function toggleDevPanel() {
+            const p = document.getElementById('devMenuPanel');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
         }
 
         function switchShopTab(tab) {
@@ -393,9 +405,21 @@
             document.getElementById('loginWin').classList.add('hidden');
             document.getElementById('lobbyWin').classList.remove('hidden');
             renderLobby();
+
+            // Verificação de segurança visual estrita para exibir o painel Dev
+            if (user.email === 'koufukupng@gmail.com') {
+                document.getElementById('devMenuPanel').classList.remove('hidden');
+            }
         });
         socket.on('forceLogout', (msg) => { alert(msg); location.reload(); });
-        socket.on('userUpdated', (user) => { currentUser = user; applyMenuStyle(user.equippedMenuStyle); renderLobby(); });
+        socket.on('userUpdated', (user) => { 
+            currentUser = user; 
+            applyMenuStyle(user.equippedMenuStyle); 
+            renderLobby(); 
+            if (user.email === 'koufukupng@gmail.com') {
+                document.getElementById('devMenuPanel').classList.remove('hidden');
+            }
+        });
         socket.on('shopError', (msg) => { alert(msg); });
 
         function openSettings() { document.getElementById('settingsModal').classList.remove('hidden'); }
@@ -420,14 +444,12 @@
             const wrap = document.getElementById('avatarCircleWrap');
             const imgEl = document.getElementById('lobbyAvatarImg');
             
-            // Tratamento exato para cada Verity cobrir o aro inteiro
             wrap.className = 'avatar-circle-wrap';
             if (currentUser.selectedClass === 'Moggity') { wrap.classList.add('moggity-bg'); imgEl.src = 'man.png'; }
             else if (currentUser.selectedClass === 'Lovity') { wrap.classList.add('lovity-bg'); imgEl.src = 'verity.png'; }
             else if (currentUser.selectedClass === 'Falsity') { wrap.classList.add('falsity-bg'); imgEl.src = 'verity.png'; }
             else { wrap.classList.add('verity-bg'); imgEl.src = 'verity.png'; }
 
-            // LOJA DE ESPADAS
             const swordList = document.getElementById('shopTabSwords');
             swordList.innerHTML = '';
             SWORD_CATALOG.forEach(sw => {
@@ -442,7 +464,6 @@
                     </div>`;
             });
 
-            // LOJA DE CLASSES (Suportando Verity Coins e Moedas Normais)
             const classList = document.getElementById('shopTabClasses');
             classList.innerHTML = '';
             if(!currentUser.unlockedClasses) currentUser.unlockedClasses = ['Verity'];
@@ -456,7 +477,6 @@
                     </div>`;
             });
 
-            // INVENTÁRIO
             const invSwords = document.getElementById('invContentSwords');
             invSwords.innerHTML = '';
             currentUser.unlockedSwords.forEach(sName => {
@@ -615,13 +635,11 @@
                 let renderX = Math.round(p.x);
                 let renderY = Math.round(p.y);
 
-                // Desenha a espada
                 let sImg = swordImgs[currentUser?.equippedSword] || swordImgs["Espada Básica"];
                 ctx.save(); ctx.translate(renderX, renderY); ctx.rotate(p.swordAngle);
                 if (sImg && sImg.complete) ctx.drawImage(sImg, p.radius + 2, -16, p.swordLength, 32);
                 ctx.restore();
 
-                // Desenha o coração orbitante e rastro do Lovity
                 if (p.selectedClass === 'Lovity') {
                     let heartDist = p.radius + 35;
                     let hX = renderX + Math.cos(p.lovityAngle) * heartDist;
@@ -632,7 +650,6 @@
                     ctx.beginPath(); ctx.arc(hX, hY, 8, 0, Math.PI*2); ctx.fill();
                 }
 
-                // Corpo do Jogador com preenchimento correto de aro
                 ctx.save(); ctx.beginPath(); ctx.arc(renderX, renderY, p.radius, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
                 if (p.selectedClass === 'Moggity') {
                     ctx.fillStyle = '#ffde00'; ctx.fillRect(renderX - p.radius, renderY - p.radius, p.radius * 2, p.radius * 2);
