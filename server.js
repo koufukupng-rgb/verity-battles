@@ -1,12 +1,16 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: { origin: "*" }
 });
+
+// FAZ O SERVIDOR LER OS ARQUIVOS DA MESMA PASTA (index.html, verity.png, etc)
+app.use(express.static(__dirname));
 
 const players = {};
 const arenaSize = { width: 800, height: 600 };
