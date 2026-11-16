@@ -13,7 +13,7 @@
 </head>
 <body>
     <h1>🟡 Verity Arena Online ⚔️</h1>
-    <p>Use as **Setas do Teclado** ou **W, A, S, D** para mover seu Verity na arena!</p>
+    <p>Use as **Setas do Teclado** ou **W, A, S, D** para mover seu Verity instantaneamente!</p>
     
     <canvas id="gameCanvas" width="800" height="600"></canvas>
 
@@ -27,7 +27,6 @@
     <!-- Script do Socket.io fornecido pelo servidor -->
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
-        // Conexão apontando diretamente para o seu serviço no Render
         const socket = io('https://verity-battles.onrender.com'); 
 
         const canvas = document.getElementById('gameCanvas');
@@ -40,6 +39,7 @@
         let myId = null;
         let players = {};
         const keys = { up: false, down: false, left: false, right: false };
+        const arenaSize = { width: 800, height: 600 };
 
         window.addEventListener('keydown', (e) => updateKeys(e, true));
         window.addEventListener('keyup', (e) => updateKeys(e, false));
@@ -57,7 +57,19 @@
         });
 
         socket.on('updatePlayers', (serverPlayers) => {
-            players = serverPlayers;
+            // Atualiza os dados dos outros jogadores, mas mantém a posição local suave se o ID for o nosso
+            for (let id in serverPlayers) {
+                if (id === myId && players[myId]) {
+                    // Mantém nossa posição local atualizada com o HP e moedas vindos do servidor
+                    players[myId].hp = serverPlayers[id].hp;
+                    players[myId].coins = serverPlayers[id].coins;
+                    players[myId].speed = serverPlayers[id].speed;
+                    players[myId].maxHp = serverPlayers[id].maxHp;
+                } else {
+                    players[id] = serverPlayers[id];
+                }
+            }
+
             if (myId && players[myId]) {
                 document.getElementById('coins').innerText = players[myId].coins;
                 document.getElementById('hp').innerText = Math.round(players[myId].hp);
@@ -68,12 +80,31 @@
             socket.emit('upgrade', type);
         }
 
-        // Loop de envio de comandos para o servidor (60 vezes por segundo)
-        setInterval(() => {
-            socket.emit('move', keys);
-        }, 1000 / 60);
+        // Loop principal local (60 FPS): Move o jogador instantaneamente na tela e avisa o servidor
+        function gameLoop() {
+            if (myId && players[myId]) {
+                let p = players[myId];
+                let currentSpeed = p.speed || 4;
 
-        // Loop de renderização gráfica no Canvas
+                // Predição local: Movimento sem delay na tela do usuário
+                if (keys.up) p.y -= currentSpeed;
+                if (keys.down) p.y += currentSpeed;
+                if (keys.left) p.x -= currentSpeed;
+                if (keys.right) p.x += currentSpeed;
+
+                // Limites da arena aplicados localmente
+                p.x = Math.max(p.radius, Math.min(arenaSize.width - p.radius, p.x));
+                p.y = Math.max(p.radius, Math.min(arenaSize.height - p.radius, p.y));
+
+                // Envia o comando para o servidor processar em segundo plano
+                socket.emit('move', keys);
+            }
+
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Função de desenho gráfica no Canvas
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -120,11 +151,10 @@
                 ctx.fillStyle = 'lime';
                 ctx.fillRect(p.x - 20, p.y - p.radius - 12, (p.hp / p.maxHp) * 40, 6);
             }
-
-            requestAnimationFrame(draw);
         }
 
-        draw();
+        // Inicia o loop do jogo assim que carregar
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>
