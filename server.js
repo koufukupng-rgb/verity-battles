@@ -37,16 +37,18 @@ const CLASSES = {
     "CyberNinja": { cost: 2500 }
 };
 
+// Mapa Livre Gigante com muitas salas, corredores e obstáculos (Tamanho 4000x3000)
 const FREE_MAP = {
-    name: "Arena Livre Gigante",
-    width: 2000,
-    height: 1500,
+    name: "Mega Labirinto Livre",
+    width: 4000,
+    height: 3000,
     obstacles: [
-        { x: 500, y: 400, w: 300, h: 80 },
-        { x: 1200, y: 300, w: 100, h: 400 },
-        { x: 800, y: 900, w: 400, h: 100 },
-        { x: 300, y: 1100, w: 200, h: 200 },
-        { x: 1500, y: 1000, w: 250, h: 150 }
+        { x: 400, y: 400, w: 600, h: 100 }, { x: 1400, y: 300, w: 150, h: 800 },
+        { x: 2200, y: 500, w: 500, h: 120 }, { x: 3000, y: 400, w: 200, h: 600 },
+        { x: 500, y: 1200, w: 800, h: 150 }, { x: 1600, y: 1400, w: 400, h: 200 },
+        { x: 2400, y: 1300, w: 150, h: 700 }, { x: 3000, y: 1500, w: 600, h: 150 },
+        { x: 300, y: 2000, w: 500, h: 200 }, { x: 1000, y: 2200, w: 800, h: 150 },
+        { x: 2000, y: 2300, w: 300, h: 400 }, { x: 2800, y: 2200, w: 700, h: 180 }
     ]
 };
 
@@ -211,8 +213,8 @@ io.on('connection', (socket) => {
 
         freeRoamPlayers[socket.id] = {
             socketId: socket.id, username: u.username, profilePic: u.profilePic,
-            selectedClass: u.selectedClass, x: Math.random() * 1800 + 100, y: Math.random() * 1300 + 100,
-            radius: 34, hp: 100, maxHp: 100, speed: 4.5, swordSpeed: 0.09, swordLength: sword.length,
+            selectedClass: u.selectedClass, x: Math.random() * 3600 + 200, y: Math.random() * 2600 + 200,
+            radius: 34, hp: 100, maxHp: 100, speed: 5.0, swordSpeed: 0.1, swordLength: sword.length,
             swordAngle: 0, keys: { up: false, down: false, left: false, right: false }, dashCooldown: 0
         };
         socket.emit('freeRoamStart', { map: FREE_MAP, players: freeRoamPlayers });
@@ -225,9 +227,9 @@ io.on('connection', (socket) => {
     socket.on('freeRoamDash', () => {
         const p = freeRoamPlayers[socket.id];
         if (p && p.selectedClass === 'Moggity' && p.dashCooldown <= 0) {
-            p.x += Math.cos(p.swordAngle) * 90;
-            p.y += Math.sin(p.swordAngle) * 90;
-            p.dashCooldown = 45;
+            p.x += Math.cos(p.swordAngle) * 110;
+            p.y += Math.sin(p.swordAngle) * 110;
+            p.dashCooldown = 35;
         }
     });
 
@@ -255,9 +257,9 @@ io.on('connection', (socket) => {
         if (room && room.players[socket.id]) {
             let p = room.players[socket.id];
             if (p.selectedClass === 'Moggity' && p.dashCooldown <= 0) {
-                p.x += Math.cos(p.swordAngle) * 85;
-                p.y += Math.sin(p.swordAngle) * 85;
-                p.dashCooldown = 50;
+                p.x += Math.cos(p.swordAngle) * 100;
+                p.y += Math.sin(p.swordAngle) * 100;
+                p.dashCooldown = 40;
             }
         }
     });
@@ -291,8 +293,8 @@ function tryCreateMatch(mode) {
             socketId: sockId, email: u.email, username: u.username, profilePic: u.profilePic,
             selectedClass: u.selectedClass || 'Verity', elo: u.elo, team,
             x: team === 1 ? 80 : map.width - 80, y: (map.height / (needed / 2 + 1)) * (Math.floor(idx / 2) + 1),
-            radius: 34, hp: 100, maxHp: 100, speed: 4.2, swordDamage: sword.damage,
-            swordLength: sword.length, swordSpeed: 0.09, swordAngle: team === 1 ? 0 : Math.PI,
+            radius: 34, hp: 100, maxHp: 100, speed: 4.5, swordDamage: sword.damage,
+            swordLength: sword.length, swordSpeed: 0.1, swordAngle: team === 1 ? 0 : Math.PI,
             hitCooldown: 0, dashCooldown: 0, keys: { up: false, down: false, left: false, right: false }
         };
         io.sockets.sockets.get(sockId)?.join(roomId);
@@ -345,7 +347,7 @@ setInterval(() => {
                 let tipY = a.y + Math.sin(a.swordAngle) * tipDist;
                 if (Math.hypot(tipX - b.x, tipY - b.y) < b.radius && a.hitCooldown <= 0) {
                     b.hp = Math.max(0, b.hp - a.swordDamage);
-                    a.hitCooldown = 18;
+                    a.hitCooldown = 15;
                 }
             }
         }
