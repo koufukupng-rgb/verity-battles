@@ -86,6 +86,11 @@ let matchQueue = { '1v1': [], '2v2': [] };
 let activeRooms = {};
 let freeRoamPlayers = {};
 
+function isDevUser(socketId) {
+    const email = onlineSockets[socketId];
+    return email === 'koufukupng@gmail.com';
+}
+
 function resolveCircleRect(p, obs) {
     let closestX = Math.max(obs.x, Math.min(p.x, obs.x + obs.w));
     let closestY = Math.max(obs.y, Math.min(p.y, obs.y + obs.h));
@@ -147,7 +152,7 @@ io.on('connection', (socket) => {
             equippedMenuStyle: "Windows 7",
             unlockedMenuStyles: ["Windows 7"],
             coins: 400,
-            verityCoins: 10, // Moeda paga com imagem do Verity
+            verityCoins: 10,
             level: 1,
             xp: 0,
             wins: 0, losses: 0,
@@ -161,6 +166,34 @@ io.on('connection', (socket) => {
         userActiveSocket[email] = socket.id;
         onlineSockets[socket.id] = email;
         socket.emit('authSuccess', newUser);
+    });
+
+    // MODO DEV (Seguro por Backend)
+    socket.on('devAddCoins', (amount) => {
+        if (!isDevUser(socket.id)) return socket.emit('shopError', 'Acesso negado.');
+        const user = db.users[onlineSockets[socket.id]];
+        if (user) { user.coins += (amount || 1000); saveDB(); socket.emit('userUpdated', user); }
+    });
+
+    socket.on('devAddVerityCoins', (amount) => {
+        if (!isDevUser(socket.id)) return socket.emit('shopError', 'Acesso negado.');
+        const user = db.users[onlineSockets[socket.id]];
+        if (user) { user.verityCoins = (user.verityCoins || 0) + (amount || 50); saveDB(); socket.emit('userUpdated', user); }
+    });
+
+    socket.on('devUnlockEverything', () => {
+        if (!isDevUser(socket.id)) return socket.emit('shopError', 'Acesso negado.');
+        const user = db.users[onlineSockets[socket.id]];
+        if (user) {
+            user.unlockedSwords = Object.keys(SWORDS);
+            user.unlockedClasses = Object.keys(CLASSES);
+            user.unlockedMenuStyles = Object.keys(MENU_STYLES);
+            user.coins += 50000;
+            user.verityCoins += 1000;
+            saveDB();
+            socket.emit('userUpdated', user);
+            socket.emit('shopError', '🛠️ MODO DEV: Tudo liberado com sucesso!');
+        }
     });
 
     socket.on('selectClass', (cls) => {
@@ -209,7 +242,7 @@ io.on('connection', (socket) => {
                     saveDB();
                     socket.emit('userUpdated', user);
                 } else {
-                    socket.emit('shopError', 'Verity Coins insuficientes! Adquira mais na aba de Verity Coins.');
+                    socket.emit('shopError', 'Verity Coins insuficientes!');
                 }
             } else {
                 if (user.coins >= clsInfo.cost) {
@@ -252,11 +285,10 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Caixa de Temas com probabilidades exatas
     socket.on('openThemeBox', () => {
         const email = onlineSockets[socket.id];
         const user = db.users[email];
-        if (!user || user.coins < 200) return socket.emit('boxError', 'Você precisa de 200 moedas para abrir a Caixa de Temas!');
+        if (!user || user.coins < 200) return socket.emit('boxError', 'Você precisa de 200 moedas!');
 
         user.coins -= 200;
 
@@ -284,7 +316,7 @@ io.on('connection', (socket) => {
         if (!user.unlockedMenuStyles.includes(selectedTheme)) {
             user.unlockedMenuStyles.push(selectedTheme);
         } else {
-            user.coins += 100; // Recompensa em dobro se já tiver
+            user.coins += 100;
         }
 
         saveDB();
@@ -429,14 +461,12 @@ setInterval(() => {
             if (p.dashCooldown > 0) p.dashCooldown--;
         }
 
-        // Dano de combate (espadas e coração do Lovity)
         for (let i = 0; i < pList.length; i++) {
             for (let j = 0; j < pList.length; j++) {
                 if (i === j) continue;
                 let a = pList[i], b = pList[j];
                 if (a.hp <= 0 || b.hp <= 0 || a.team === b.team) continue;
                 
-                // Dano da espada
                 let tipDist = a.radius + a.swordLength;
                 let tipX = a.x + Math.cos(a.swordAngle) * tipDist;
                 let tipY = a.y + Math.sin(a.swordAngle) * tipDist;
@@ -445,13 +475,12 @@ setInterval(() => {
                     a.hitCooldown = 15;
                 }
 
-                // Dano do Coração orbitante do Lovity
                 if (a.selectedClass === 'Lovity') {
                     let heartDist = a.radius + 35;
                     let hX = a.x + Math.cos(a.lovityAngle) * heartDist;
                     let hY = a.y + Math.sin(a.lovityAngle) * heartDist;
                     if (Math.hypot(hX - b.x, hY - b.y) < b.radius + 10 && a.hitCooldown <= 0) {
-                        b.hp = Math.max(0, b.hp - 6); // Dano leve contínuo
+                        b.hp = Math.max(0, b.hp - 6);
                     }
                 }
             }
